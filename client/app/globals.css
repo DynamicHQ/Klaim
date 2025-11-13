@@ -2,21 +2,24 @@
 
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --primary-text: #303030;
+  --secondary-text: #4b4453;
+  --main: rgba(132, 94, 194, 1);
+}
+
+[data-theme = dark] {
+  --background: #111111;
+  --primary-text: #dddddd;
+  --secondary-text: #bbbbbb;
 }
 
 @theme inline {
   --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-primary-text: var(--primary-test);
+  --color-secondary-text: var(--secondary-text);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-main: var(--main)
 }
 
 body {
@@ -24,3 +27,5 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+@plugin "daisyui"
