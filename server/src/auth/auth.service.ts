@@ -1,38 +1,61 @@
+// src/auth/auth.service.ts
+
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { UserService } from '../user/user.service';
 import { JwtService } from '@nestjs/jwt';
-import { ethers } from 'ethers';
+import { ethers } from 'ethers'; // The core library for crypto operations
+import { Model } from 'mongoose';
+import { InjectModel } from '@nestjs/mongoose';
+import { User } from 'src/user/schema/user.schema';
+import { LoginDto } from 'src/user/dto/login.dto';
 
 @Injectable()
 export class AuthService {
   constructor(
-    private userService: UserService,
-    private jwtService: JwtService
+    private userService: UserService, // Dependency on UserService
+    private jwtService: JwtService,   // Dependency on NestJS JwtService
+    @InjectModel(User.name) private userModel: Model<User>,
   ) {}
 
-  // Step 1: Request a nonce for a wallet
-  async requestNonce(walletAddress: string) {
-    const user = await this.userService.Create(walletAddress);
-    return { nonce: user.nonce };
-  }
+  async login(loginDto: LoginDto): Promise<{ access_token: string }> {
+    const { wallet, signature } = loginDto;
+    const lowerCaseWallet = wallet.toLowerCase();
+    
+    const user = await this.userModel.findOne({ wallet: lowerCaseWallet }).exec();
 
-
-  // Step 2: Verify the signed message
-  async verifySignature(walletAddress: string, signature: string) {
-    const user = await this.userService.Create(walletAddress);
-    const message = `Sign this message to log in: ${user.nonce}`;
-
-    // Recover signer from the signature
-    const recovered = ethers.verifyMessage(message, signature);
-    if (recovered.toLowerCase() !== walletAddress.toLowerCase()) {
-      throw new UnauthorizedException('Invalid signature');
+    if (!user) {
+      throw new UnauthorizedException('User not found. Please request a nonce first to register/login.');
     }
 
-    // Update nonce so it can’t be reused
-    await this.userService.updateNonce(walletAddress);
+    const signedMessage = `Welcome to Klaimit! Sign this nonce to login: ${user.nonce}`;
 
-    // Create a JWT token for session
-    const token = await this.jwtService.signAsync({ walletAddress });
-    return { token };
+    try {
+        const recoveredAddress = ethers.verifyMessage(signedMessage, signature);
+        
+        if (recoveredAddress.toLowerCase() !== lowerCaseWallet) {
+          throw new UnauthorizedException('Invalid signature or nonce mismatch.');
+        }
+        
+        await this.userService.findOrCreateAndSetNonce(user.wallet); 
+
+
+        const payload = { 
+            id: user.id.toString(), 
+            wallet: user.wallet      // Wallet address
+        }; 
+        
+        return {
+          access_token: this.jwtService.sign(payload),
+        };
+        
+    } catch (error) {
+        // Catch ethers.js errors (e.g., malformed signature) or the UnauthorizedException
+        if (error instanceof UnauthorizedException) {
+             throw error;
+        }
+        // Handle generic/cryptographic failures
+        throw new UnauthorizedException('Authentication failed due to signature verification error.');
+    }
   }
+
 }

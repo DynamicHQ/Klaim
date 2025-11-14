@@ -1,16 +1,24 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 
-@Schema()
-export class User extends Document {
-  @Prop({ required: true, unique: true })
-  walletAddress: string;
+@Schema({ timestamps: true }) 
+export class User extends Document  {
+  // The unique identifier for authentication
+  @Prop({ 
+    required: true, 
+    unique: true, 
+    lowercase: true,
+    index: true 
+  })
+  wallet: string;
 
-  @Prop()
+  // The unique string required for the signature verification step
+  @Prop({ required: true })
   nonce: string; 
 
-  @Prop({ default: Date.now })
-  createdAt: Date;
+  // Optional display name
+  @Prop({ default: 'Klaimit User' })
+  profileName: string;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
