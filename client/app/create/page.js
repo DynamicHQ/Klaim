@@ -1,5 +1,4 @@
 'use client';
-
 import { useState } from 'react';
 import { FaUpload, FaSpinner, FaCheck, FaExclamationTriangle, FaWallet } from 'react-icons/fa';
 import { storyProtocolService, validateMetadata, formatMetadataForStoryProtocol } from '@/utils/storyProtocol';
@@ -11,10 +10,7 @@ export default function RegisterIP() {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    image: null,
-    attributes: [{ trait_type: '', value: '' }],
-    royaltyPercentage: 5,
-    royaltyRecipient: ''
+    image: null
   });
   
   const [status, setStatus] = useState('idle'); // idle, loading, success, error
@@ -55,25 +51,7 @@ export default function RegisterIP() {
     }
   };
 
-  const handleAttributeChange = (index, field, value) => {
-    const newAttributes = [...formData.attributes];
-    newAttributes[index][field] = value;
-    setFormData(prev => ({ ...prev, attributes: newAttributes }));
-  };
 
-  const addAttribute = () => {
-    setFormData(prev => ({
-      ...prev,
-      attributes: [...prev.attributes, { trait_type: '', value: '' }]
-    }));
-  };
-
-  const removeAttribute = (index) => {
-    if (formData.attributes.length > 1) {
-      const newAttributes = formData.attributes.filter((_, i) => i !== index);
-      setFormData(prev => ({ ...prev, attributes: newAttributes }));
-    }
-  };
 
   const validateForm = () => {
     const metadata = formatMetadataForStoryProtocol(formData);
@@ -124,10 +102,7 @@ export default function RegisterIP() {
     setFormData({
       title: '',
       description: '',
-      image: null,
-      attributes: [{ trait_type: '', value: '' }],
-      royaltyPercentage: 5,
-      royaltyRecipient: ''
+      image: null
     });
     setImagePreview(null);
     setStatus('idle');
@@ -287,87 +262,6 @@ export default function RegisterIP() {
                         accept="image/*"
                         onChange={handleImageChange}
                         className="file-input file-input-bordered w-full max-w-xs"
-                        disabled={status === 'loading'}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Attributes */}
-                  <div className="form-control">
-                    <label className="label">
-                      <span className="label-text font-semibold">Attributes</span>
-                    </label>
-                    <div className="space-y-2">
-                      {formData.attributes.map((attr, index) => (
-                        <div key={index} className="flex gap-2">
-                          <input
-                            type="text"
-                            placeholder="Trait type"
-                            value={attr.trait_type}
-                            onChange={(e) => handleAttributeChange(index, 'trait_type', e.target.value)}
-                            className="input input-bordered flex-1"
-                            disabled={status === 'loading'}
-                          />
-                          <input
-                            type="text"
-                            placeholder="Value"
-                            value={attr.value}
-                            onChange={(e) => handleAttributeChange(index, 'value', e.target.value)}
-                            className="input input-bordered flex-1"
-                            disabled={status === 'loading'}
-                          />
-                          {formData.attributes.length > 1 && (
-                            <button
-                              type="button"
-                              onClick={() => removeAttribute(index)}
-                              className="btn btn-error btn-square"
-                              disabled={status === 'loading'}
-                            >
-                              ×
-                            </button>
-                          )}
-                        </div>
-                      ))}
-                      <button
-                        type="button"
-                        onClick={addAttribute}
-                        className="btn btn-outline btn-sm"
-                        disabled={status === 'loading'}
-                      >
-                        + Add Attribute
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Royalty Settings */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="form-control">
-                      <label className="label">
-                        <span className="label-text font-semibold">Royalty Percentage</span>
-                      </label>
-                      <input
-                        type="number"
-                        name="royaltyPercentage"
-                        value={formData.royaltyPercentage}
-                        onChange={handleInputChange}
-                        min="0"
-                        max="100"
-                        step="0.1"
-                        className="input input-bordered"
-                        disabled={status === 'loading'}
-                      />
-                    </div>
-                    <div className="form-control">
-                      <label className="label">
-                        <span className="label-text font-semibold">Royalty Recipient</span>
-                      </label>
-                      <input
-                        type="text"
-                        name="royaltyRecipient"
-                        value={formData.royaltyRecipient}
-                        onChange={handleInputChange}
-                        placeholder="0x... (optional, defaults to creator)"
-                        className="input input-bordered"
                         disabled={status === 'loading'}
                       />
                     </div>

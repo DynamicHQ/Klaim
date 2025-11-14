@@ -1,4 +1,5 @@
 import { ethers } from "ethers";
+import { syncWallet } from '@/utils/api';
 
 export default async function handleSignup(e) {
   // If called as an event handler, prevent default submit behavior
@@ -23,25 +24,15 @@ export default async function handleSignup(e) {
     // Store wallet address in localStorage
     if (typeof localStorage !== 'undefined') localStorage.setItem('walletAddress', address);
 
-    // Send wallet address to API
-    // Note: API endpoint should be configured in .env
-    const API_ENDPOINT = process.env.NEXT_PUBLIC_API_ENDPOINT;
-    
-    const response = await fetch(`${API_ENDPOINT}/signup`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        walletAddress: address
-      })
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to register wallet');
+    // Sync wallet with backend using the standard endpoint
+    try {
+      const resp = await syncWallet(address);
+      return { success: true, address, resp };
+    } catch (err) {
+      console.error('Failed to sync wallet in signup:', err);
+      // Return but still provide address so UI can proceed
+      return { success: true, address, syncError: err?.message || String(err) };
     }
-
-    return { success: true, address };
 
   } catch (error) {
     console.error('Signup error:', error);
