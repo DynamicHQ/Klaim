@@ -46,16 +46,8 @@ async findOrCreateAndSetNonce(wallet: string): Promise<string> {
     }
   }
 
-  // async updateNonce(walletAddress: string) {
-  //   const nonce = randomBytes(16).toString('hex');
-  //   return this.userModel.findOneAndUpdate(
-  //     { walletAddress },
-  //     { nonce },
-  //     { new: true }
-  //   );
-  // }]
-
-async findUserById(id: string) {
+ async findUserById(id: string) {
+        // Use lean() for faster read-only access
     return this.userModel.findById(id).lean().exec(); 
     }
   

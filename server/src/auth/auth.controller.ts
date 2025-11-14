@@ -43,9 +43,4 @@ export class AuthController {
     }
   }
 
-  @UseGuards(AuthGuard())
-  @Get('test')
-  async test(){
-  return await this.authService.testAith()
-}
 }

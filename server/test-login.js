@@ -6,7 +6,7 @@ const { Wallet } = require('ethers');
 const PRIVATE_KEY = "10d5c166be9a04f7334407dd8fedf44c1e67ac1b9cc703515b9579e275a5f613";
 
 // 👈 PASTE THE NONCE YOU JUST RECEIVED FROM YOUR BACKEND HERE
-const NONCE_FROM_SERVER = "7ce0eb57feb9a49fc9e2d196439858b7b0e214fe42a757257dce62a263d2a3fe"; 
+const NONCE_FROM_SERVER = "01ad5132f17a56237858225a5b5d2c8a2485bc7f7674d2a8d4399470067405df"; 
 
 async function generateSignature() {
     console.log('--- SIGNATURE GENERATION ---');

@@ -17,11 +17,6 @@ export class AuthService {
     @InjectModel(User.name) private userModel: Model<User>,
   ) {}
 
-  /**
-   * Performs the signature-based login verification and issues a JWT.
-   */  async testAith(){
-    return "hello world"
-  }
   async login(loginDto: LoginDto): Promise<{ access_token: string }> {
     const { wallet, signature } = loginDto;
     const lowerCaseWallet = wallet.toLowerCase();
@@ -41,15 +36,11 @@ export class AuthService {
           throw new UnauthorizedException('Invalid signature or nonce mismatch.');
         }
         
-        // --- SUCCESS: Verification Passed ---
-
-     // CRITICAL SECURITY STEP: Immediately set a new nonce
         await this.userService.findOrCreateAndSetNonce(user.wallet); 
 
-        // 6. Generate and return the JWT (access token)
-        // The payload contains essential, non-sensitive data for identifying the user in future requests
+
         const payload = { 
-            sub: user.id.toString(), // Subject: Database ID
+            id: user.id.toString(), 
             wallet: user.wallet      // Wallet address
         }; 
         

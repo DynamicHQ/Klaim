@@ -1,45 +1,44 @@
-// src/auth/jwt.strategy.ts
-
-import { ExtractJwt, Strategy } from 'passport-jwt';
-import { PassportStrategy } from '@nestjs/passport';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { PassportStrategy } from '@nestjs/passport';
+import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
-import { UserService } from 'src/user/user.service';
-
-// Define the shape of the data encoded in the token payload
-export interface JwtPayload {
-  sub: string; // User ID from MongoDB
-  wallet: string;
-}
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { User } from '../../user/schema/user.schema';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
     private configService: ConfigService,
-    private userService: UserService, // Inject UserService
+    @InjectModel(User.name) private userModel: Model<User>,
   ) {
+    const jwtSecret = configService.get<string>('JWT_SECRET');
+if (!jwtSecret) {
+  throw new Error('JWT_SECRET is not defined!');
+}
     super({
-      // Tell the strategy how to find the JWT in the request (usually the Authorization header)
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(), 
-      // Do NOT ignore expiration; NestJS handles this automatically.
-      ignoreExpiration: false, 
-      // The secret key must match the one used to SIGN the token in auth.module.ts
-      secretOrKey: configService.get<string>('JWT_SECRET'),
+      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      ignoreExpiration: false,
+      secretOrKey: jwtSecret
     });
   }
 
-  // This method is called after the token is verified (i.e., not expired, correct signature)
-  async validate(payload: JwtPayload) {
-    // 1. Optional Security Check: Confirm the user still exists in the database
-    // This prevents a user who was deleted from still using an active token.
-    // We assume you have a findById or similar method in your UserService
-    const user = await this.userService.findUserById(payload.sub); 
 
-    if (!user) {
-      throw new UnauthorizedException('User not found or deleted.');
-    }
-    
-    // 2. Return the payload. This object is automatically attached to req.user in the controller.
-    return { userId: payload.sub, wallet: payload.wallet };
+// src/auth/jwt.strategy.ts
+
+async validate(payload: any) {
+  const { id } = payload;
+  
+  // 💡 ADD THIS LINE to see what ID the strategy is looking up
+  console.log(`[JWT Strategy] Attempting to find user with ID: ${id}`); 
+  
+  const user = await this.userModel.findById(id);
+
+  if (!user) {
+    // This part is executing!
+    throw new UnauthorizedException('Login first to access this endpoint.');
   }
+return user;
+  // ... (rest of the code)
+}
 }
