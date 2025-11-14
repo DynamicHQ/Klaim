@@ -1,0 +1,137 @@
+Perfect. Let’s do **ILicenseToken** next — this is the interface representing the on-chain license **token itself**. It’s separate from the LicensingModule; it’s essentially an ERC‑721 (or ERC‑1155) token representing the license minted by `createLicense()` in the LicensingModule.
+
+We’ll follow the same style:
+
+* **Exact function signatures used by Story**
+* **Structs if referenced**
+* **Variable/source mapping (frontend/backend/on-chain)**
+* **Notes on how it’s used in workflows**
+
+---
+
+# ✅ **ILicenseToken Interface (Reconstructed)**
+
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+interface ILicenseToken {
+    /// @notice Returns owner of a license token
+    function ownerOf(uint256 licenseId) external view returns (address);
+
+    /// @notice Returns the IP Asset associated with a license token
+    function ipId(uint256 licenseId) external view returns (address);
+
+    /// @notice Returns the license terms for a given license token
+    function getLicenseTerms(uint256 licenseId) external view returns (LicenseTerms memory);
+
+    /// @notice Checks if a license token is valid (not expired, active)
+    function isValid(uint256 licenseId) external view returns (bool);
+
+    /// @notice Transfers license token to another account
+    function transferFrom(address from, address to, uint256 licenseId) external;
+
+    /// @notice Approves another address to manage a license token
+    function approve(address to, uint256 licenseId) external;
+
+    /// @notice Returns approved address for a license token
+    function getApproved(uint256 licenseId) external view returns (address);
+
+    /// @notice Emitted when a license token is transferred
+    event Transfer(address indexed from, address indexed to, uint256 indexed licenseId);
+
+    /// @notice Emitted when a license token is approved
+    event Approval(address indexed owner, address indexed approved, uint256 indexed licenseId);
+}
+
+/// ----------------------
+/// Reused Struct from LicensingModule
+/// ----------------------
+struct LicenseTerms {
+    uint256 expiration;            // UNIX timestamp (0 = no expiration)
+    uint256 commercialFee;         // fee for commercial use
+    uint256 revenueShare;          // % revenue to parent IP
+    bool commercialUseAllowed;     // TRUE if commercial allowed
+    bool derivativeAllowed;        // TRUE if derivatives allowed
+    string licenseURI;             // URI to full license text (IPFS/backend)
+}
+```
+
+---
+
+# 🔍 **Explanation & Variable Sources**
+
+### 1. `ownerOf(licenseId)`
+
+* Returns the **current owner of the license token**.
+* **On-chain**: read from LicenseToken contract
+* **Frontend/backend**: call via ethers.js
+
+---
+
+### 2. `ipId(licenseId)`
+
+* Returns the **IP Account contract address** the license is attached to.
+* **On-chain**: stored in token metadata
+* Used to track parent IP for royalties and derivatives.
+
+---
+
+### 3. `getLicenseTerms(licenseId)`
+
+* Returns the `LicenseTerms` struct.
+* **Frontend/backend**: read to display license rules
+* **On-chain**: storage in LicenseToken contract
+
+---
+
+### 4. `isValid(licenseId)`
+
+* Boolean: license is active (not expired, not revoked)
+* Useful to prevent invalid derivative registration or commercial use.
+
+---
+
+### 5. `transferFrom(from, to, licenseId)`
+
+* Standard ERC‑721 transfer
+* **Frontend**: user interacts via wallet
+* **Backend**: optional batch operations
+
+---
+
+### 6. `approve(to, licenseId)` / `getApproved(licenseId)`
+
+* Standard ERC‑721 approval mechanism
+* Needed for allowing a module (like LicensingModule or RoyaltyModule) to interact with the license token.
+
+---
+
+### 7. Events (`Transfer`, `Approval`)
+
+* Track changes for frontend dashboards
+* Backend indexers often watch these to update UI / analytics
+
+---
+
+# 🧩 **LicenseTerms Struct Source Table**
+
+| Field                  | Source           | Notes                        |
+| ---------------------- | ---------------- | ---------------------------- |
+| `expiration`           | Frontend/backend | UNIX timestamp               |
+| `commercialFee`        | Frontend/backend | In wei                       |
+| `revenueShare`         | Frontend/backend | % of revenue                 |
+| `commercialUseAllowed` | Frontend toggle  | Bool                         |
+| `derivativeAllowed`    | Frontend toggle  | Bool                         |
+| `licenseURI`           | Backend or IPFS  | URL pointing to JSON license |
+
+---
+
+# ⚠️ **Workflow Note**
+
+When a user mints a license via `ILicensingModule.createLicense(...)`, a **new LicenseToken** is minted automatically.
+
+* You almost never deploy/manage ILicenseToken manually
+* Use IPAccount → execute → LicensingModule → mint license workflow
+* The LicenseToken contract **already exists on-chain** (address given in Story docs)
+

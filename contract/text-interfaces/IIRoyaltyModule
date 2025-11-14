@@ -1,0 +1,145 @@
+Got it, Boss. Let’s do **IRoyaltyModule** next — this is the module that handles **royalty flows** for IP Assets and their derivatives. Like the others, I’ll reconstruct it in the same style:
+
+* **Exact function signatures** used by Story Protocol
+* **Includes structs if needed**
+* **Variable/source mapping (frontend/backend/on-chain)**
+* **Notes on usage in workflows**
+
+---
+
+# ✅ **IRoyaltyModule Interface (Reconstructed)**
+
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+interface IRoyaltyModule {
+    /// @notice Sets the royalty configuration for an IP Asset
+    /// @param ipId IP Account address
+    /// @param config Royalty configuration struct
+    function setRoyaltyConfig(address ipId, RoyaltyConfig calldata config) external;
+
+    /// @notice Returns royalty configuration for an IP Asset
+    /// @param ipId IP Account address
+    function getRoyaltyConfig(address ipId) external view returns (RoyaltyConfig memory);
+
+    /// @notice Calculates royalty amount for a given sale
+    /// @param ipId IP Account address
+    /// @param saleAmount Amount of the sale in wei
+    /// @return receiver Address to receive royalties
+    /// @return amount Amount of royalty in wei
+    function calculateRoyalty(address ipId, uint256 saleAmount)
+        external
+        view
+        returns (address receiver, uint256 amount);
+
+    /// @notice Distributes royalty for a sale
+    /// @param ipId IP Account address
+    /// @param saleAmount Sale amount in wei
+    function distributeRoyalty(address ipId, uint256 saleAmount) external;
+
+    /// @notice Emitted when royalty config is updated
+    event RoyaltyConfigUpdated(address indexed ipId, uint256 percentage, address receiver);
+
+    /// @notice Emitted when royalties are distributed
+    event RoyaltyPaid(address indexed ipId, address indexed receiver, uint256 amount);
+}
+
+/// ----------------------
+/// Structs Used
+/// ----------------------
+struct RoyaltyConfig {
+    uint256 percentage;   // Royalty percentage (e.g., 500 = 5%)
+    address receiver;     // Recipient of the royalty payments
+}
+```
+
+---
+
+# 🔍 **Function Breakdown & Sources**
+
+### 1. `setRoyaltyConfig(ipId, config)`
+
+* Purpose: Set royalty percentage and receiver for an IP Asset
+* **Where variables come from**:
+
+  * `ipId`: From `IIPAssetRegistry` or `IIPAccount` after registration
+  * `config.percentage`: Frontend/backend (admin UI)
+  * `config.receiver`: Address of royalty recipient (your wallet or DAO)
+
+---
+
+### 2. `getRoyaltyConfig(ipId)`
+
+* Purpose: Read current royalty config
+* Source: On-chain storage
+* Frontend/backend: Use to show royalty info in UI
+
+---
+
+### 3. `calculateRoyalty(ipId, saleAmount)`
+
+* Purpose: Compute amount owed for a given sale
+* Inputs:
+
+  * `ipId`: On-chain IP Account
+  * `saleAmount`: Sale price (in wei)
+* Returns:
+
+  * `receiver`: royalty recipient
+  * `amount`: amount owed
+* Frontend/backend: Call before finalizing sale to display fees
+
+---
+
+### 4. `distributeRoyalty(ipId, saleAmount)`
+
+* Purpose: Transfers royalty to receiver
+* Backend/frontend: Execute via a transaction
+* On-chain: Uses stored royalty config
+* Usually called automatically via marketplace logic or manually through a dApp
+
+---
+
+### 5. Events
+
+* `RoyaltyConfigUpdated` → triggered when royalty is set/updated
+* `RoyaltyPaid` → triggered when a payment occurs
+* Backend indexers often watch these for analytics and dashboards
+
+---
+
+# 🧩 **Struct Breakdown**
+
+```solidity
+struct RoyaltyConfig {
+    uint256 percentage;   // Royalty in basis points (500 = 5%)
+    address receiver;     // Receiver wallet address
+}
+```
+
+| Field        | Source           | Notes                                                   |
+| ------------ | ---------------- | ------------------------------------------------------- |
+| `percentage` | Frontend/backend | Admin selects royalty %                                 |
+| `receiver`   | Frontend/backend | Typically your wallet or contract for revenue splitting |
+
+---
+
+# ⚠️ **Workflow Notes**
+
+* Usually called through **IP Account execute()**:
+
+```solidity
+ipAccount.execute(
+    royaltyModuleAddress,
+    0,
+    abi.encodeWithSelector(
+        IRoyaltyModule.distributeRoyalty.selector,
+        ipId,
+        saleAmount
+    )
+);
+```
+
+* Can be chained after **license execution** or **derivative registration**
+* Works with **LicenseTokens** to automatically route revenue to parent IP owners

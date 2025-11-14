@@ -1,0 +1,145 @@
+
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+interface IIPAccount {
+    /// @notice Returns the chainId of the NFT this IP Account represents
+    function chainId() external view returns (uint256);
+
+    /// @notice Returns the NFT contract address associated with this IP Asset
+    function tokenContract() external view returns (address);
+
+    /// @notice Returns the tokenId of the NFT associated with this IP Asset
+    function tokenId() external view returns (uint256);
+
+    /// @notice Executes a call from the IP Account to another contract
+    /// @param to Target contract to call
+    /// @param value ETH amount to forward
+    /// @param data Encoded function call data
+    /// @return result Raw returned data from the call
+    function execute(
+        address to,
+        uint256 value,
+        bytes calldata data
+    ) external payable returns (bytes memory result);
+
+    /// @notice Emitted whenever .execute() is run
+    event Executed(address indexed to, uint256 value, bytes data, bytes result);
+}
+```
+
+---
+
+# 🧩 **Function Breakdown & Why they exist**
+
+Story Protocol gives each IP Asset its own “account contract” that **executes licensing, royalties, permissions, and derivative logic** on its behalf.
+
+### ✔ `chainId()`, `tokenContract()`, `tokenId()`
+
+**Why:**
+These link the IP Account back to its underlying NFT (the “proof of ownership” of the IP).
+
+**Where values come from:**
+
+* `chainId`: stored internally at deployment
+* `tokenContract`: passed during registration via the registry
+* `tokenId`: same as above
+
+You **never provide these manually** — you only **read** them.
+
+---
+
+### ✔ `execute(address to, uint256 value, bytes data)`
+
+**Why:**
+This is the *core power* of the IP Account.
+It allows the IP Asset to call **modules** (licensing, royalty logic, any contract Story provides).
+
+Example:
+Licensing a derivative, applying royalty policies, attaching a PIL license, etc.
+
+**Where values come from when you call it:**
+
+| Parameter | Source                                      | Explanation                            |
+| --------- | ------------------------------------------- | -------------------------------------- |
+| `to`      | On-chain module address from Story docs     | e.g., LicensingModule or RoyaltyModule |
+| `value`   | Frontend (usually 0)                        | ETH to send — mostly unused            |
+| `data`    | Encoded function call from frontend/backend | You prepare ABI-encoded call data      |
+
+You MUST encode `data` like:
+
+```js
+const data = moduleInterface.encodeFunctionData("someFunction", [args...]);
+await ipAccount.execute(moduleAddress, 0, data);
+```
+
+---
+
+### ✔ `event Executed(...)`
+
+**Why:**
+Lets you track module executions on-chain.
+
+**Where it’s used:**
+
+* Backend indexer
+* Dashboard analytics
+* Debugging your integration
+
+---
+
+# 📌 **Variable/Param Source Table**
+
+| Variable        | Comes From                    | Provided By            | Notes                     |
+| --------------- | ----------------------------- | ---------------------- | ------------------------- |
+| `to`            | Story Protocol module address | Docs or configuration  | e.g., LicensingModule     |
+| `value`         | Frontend                      | Usually 0              | Unless paying fees in ETH |
+| `data`          | ABI-encoded payload           | Frontend/backend       | Encode with ethers.js     |
+| `chainId`       | On-chain                      | Stored inside contract | You never set it          |
+| `tokenContract` | On-chain                      | Stored inside contract | Read-only                 |
+| `tokenId`       | On-chain                      | Stored inside contract | Read-only                 |
+
+---
+
+# ⚠️ Important Architecture Notes
+
+### 1. **You never deploy IIPAccount yourself**
+
+The **registry deploys** IP Accounts using a CREATE2 deterministic address, meaning:
+
+* predictable
+* unique per NFT
+* safe and permission-controlled
+
+---
+
+### 2. **You rarely call IIPAccount directly from Solidity**
+
+Instead:
+
+* Frontend/Backend → call → IPAccount.execute()
+* execute() → calls → module contract
+* module → performs logic (register license, apply royalties, etc.)
+
+This keeps your own contracts small and safe.
+
+---
+
+### 3. **All licensing/royalty operations happen by calling execute()**
+
+Example:
+
+```solidity
+ipAccount.execute(
+    licensingModuleAddress,
+    0,
+    abi.encodeWithSignature(
+        "attachLicense(address,address,uint256)",
+        ipId,
+        licenseAddress,
+        licenseId
+    )
+);
+```
+

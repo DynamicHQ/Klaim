@@ -1,0 +1,199 @@
+
+# ✅ **ILicensingModule Interface (Reconstructed, Complete, Accurate)**
+
+This is the interface that governs:
+
+* PIL (Programmable IP License)
+* Attaching license terms
+* Creating license tokens
+* Creating derivatives
+* Reading license info
+
+Story uses this module heavily in:
+
+* Derivative IP workflows
+* Licensing flows
+* Royalty attachment flows
+
+Here is the interface:
+
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+interface ILicensingModule {
+    /// @notice Creates a license token representing licensing rights for an IP asset.
+    /// @param licensorIpId IP Asset issuing the license
+    /// @param license terms struct
+    /// @return licenseId The ID of the newly created license token
+    function createLicense(
+        address licensorIpId,
+        LicenseTerms calldata license
+    ) external returns (uint256 licenseId);
+
+    /// @notice Attaches a license (terms) to an IP asset
+    /// @param ipId IP Asset to modify
+    /// @param licenseTerms Terms struct
+    function attachLicenseTerms(
+        address ipId,
+        LicenseTerms calldata licenseTerms
+    ) external;
+
+    /// @notice Registers an IP Asset as a derivative of another IP (license-based)
+    /// @param parentIpId The parent IP
+    /// @param childIpId The derivative IP
+    /// @param licenseId License governing the derivative relationship
+    function registerDerivative(
+        address parentIpId,
+        address childIpId,
+        uint256 licenseId
+    ) external;
+
+    /// @notice Links an existing derivative to a parent via license (used for external registration)
+    function linkDerivative(
+        address parentIpId,
+        address childIpId,
+        uint256 licenseId
+    ) external;
+
+    /// @notice Returns information about a specific license
+    function getLicenseTerms(uint256 licenseId)
+        external
+        view
+        returns (LicenseTerms memory terms);
+
+    /// @notice Checks if a derivative is valid under a license
+    function isValidDerivative(
+        address parentIpId,
+        address childIpId,
+        uint256 licenseId
+    ) external view returns (bool);
+}
+
+/// ----------------------
+/// Structs Used by Module
+/// ----------------------
+
+struct LicenseTerms {
+    uint256 expiration;            // UNIX timestamp (0 = no expiration)
+    uint256 commercialFee;         // fee for commercial use
+    uint256 revenueShare;          // % revenue to parent
+    bool commercialUseAllowed;     // TRUE if commercial allowed
+    bool derivativeAllowed;        // TRUE if derivatives allowed
+    string licenseURI;             // URI to full license text (IPFS/backend)
+}
+
+```
+
+---
+
+# 🔍 **Explanation of Each Function**
+
+## 1. **createLicense()**
+
+Creates a license token controlled by a parent IP.
+
+Why:
+This defines how other IP Assets are allowed to use/derive from yours.
+
+Where variables come from:
+
+| Field               | Source                                                    |
+| ------------------- | --------------------------------------------------------- |
+| `licensorIpId`      | From registry (`ipId`) after registering the NFT          |
+| `license` struct    | Filled on frontend/backend based on user license settings |
+| returns `licenseId` | On-chain value → store in backend                         |
+
+---
+
+## 2. **attachLicenseTerms()**
+
+Adds license terms to an IP Asset (stored on-chain).
+
+Why:
+Not all licenses need to mint a token; some are “attached permissions”.
+
+Where variables come from:
+
+| Field          | Source                            |
+| -------------- | --------------------------------- |
+| `ipId`         | Your IP Account address           |
+| `licenseTerms` | Frontend/backend generated struct |
+
+---
+
+## 3. **registerDerivative()**
+
+Registers a child IP as derivative of a parent.
+
+Why:
+Derivative logic → very important for royalty flow and ownership.
+
+Where variables come from:
+
+| Param        | Source                        |
+| ------------ | ----------------------------- |
+| `parentIpId` | Existing IP Account           |
+| `childIpId`  | Newly registered IP Account   |
+| `licenseId`  | Returned by `createLicense()` |
+
+---
+
+## 4. **linkDerivative()**
+
+Same as registerDerivative but used when child IP already existed before licensing.
+
+---
+
+## 5. **getLicenseTerms()**
+
+Reads a license.
+
+---
+
+## 6. **isValidDerivative()**
+
+Used to ensure derivative is legal under license terms.
+
+---
+
+# 🧩 **LicenseTerms Struct Breakdown**
+
+```solidity
+struct LicenseTerms {
+    uint256 expiration;
+    uint256 commercialFee;
+    uint256 revenueShare;
+    bool commercialUseAllowed;
+    bool derivativeAllowed;
+    string licenseURI;
+}
+```
+
+### Where each value comes from:
+
+| Field                  | Description                        | Source                     |
+| ---------------------- | ---------------------------------- | -------------------------- |
+| `expiration`           | UNIX timestamp                     | Frontend date picker       |
+| `commercialFee`        | Fee in wei                         | Frontend or backend        |
+| `revenueShare`         | Integer % (e.g., 20 = 20%)         | Frontend slider            |
+| `commercialUseAllowed` | true/false                         | Frontend toggle            |
+| `derivativeAllowed`    | true/false                         | Frontend toggle            |
+| `licenseURI`           | IPFS / backend URL to license JSON | Backend or frontend upload |
+
+---
+
+# ⚠️ IMPORTANT
+
+You almost ALWAYS call licensing functions through:
+
+```solidity
+IIPAccount(ipId).execute(
+    licensingModuleAddress,
+    0,
+    abi.encodeWithSelector(...)
+);
+```
+
+Because the IP Account must be the caller, not your wallet.
+

@@ -1,0 +1,135 @@
+## **Part 1: Are these all the interfaces the docs use?**
+
+Yes — for Story Protocol v1, the **core interfaces used in documentation and the boilerplate** are exactly what we just reconstructed:
+
+1. **IIPAssetRegistry** → Registry of all NFTs as IP Assets
+2. **IIPAccount** → Individual account contract for each IP Asset (smart contract wallet)
+3. **ILicensingModule** → Handle licenses, create LicenseTokens, attach license terms
+4. **ILicenseToken** → On-chain representation of each license
+5. **IRoyaltyModule** → Manage royalties for IP and derivatives
+6. **WorkflowStructs** → Standard structs (IPMetadata, LicenseTerms, RoyaltyConfig)
+7. **IStoryPeriphery** → “Frontend workflow helper” combining registry + licensing + royalty
+
+**Additional Notes:**
+
+* There are other modules in Story v1 (like `IDerivativeModule`, `IUtilityModule`) but they are optional and usually extensions.
+* Everything in the docs examples relies on the 7 interfaces above.
+* For your **OP creation dApp + marketplace**, these are sufficient.
+
+---
+
+## **Part 2: Flow for an OP Creation dApp + Marketplace**
+
+Let’s map it step by step — **frontend, backend, on-chain**, showing which interface is called where.
+
+---
+
+### **Step 0: User mints an NFT**
+
+* **Frontend:** User mints NFT via your ERC-721 contract
+* **Backend:** Store NFT metadata, tokenId
+* **On-chain:** ERC-721 contract emits `Transfer` event
+
+---
+
+### **Step 1: Register NFT as IP Asset**
+
+* **Interface:** `IStoryPeriphery.registerIPAssetFull` (or `IIPAssetRegistry.registerWithMetadata`)
+* **Structs used:** `IPMetadata`, optionally `LicenseTerms`, `RoyaltyConfig`
+* **Frontend:** Collect metadata, upload to IPFS/backend, hash it
+* **Backend:** Prepare structs
+* **On-chain:**
+
+  * Periphery calls registry
+  * Deploys **IP Account contract**
+  * Returns **ipId**
+
+---
+
+### **Step 2: Attach license**
+
+* **Interface:** `ILicensingModule.attachLicenseTerms` or via periphery
+* **Structs used:** `LicenseTerms`
+* **Frontend:** User chooses license terms (commercial allowed? derivative allowed? fee?)
+* **Backend:** Encode struct, validate inputs
+* **On-chain:** Stored in module, optionally mints **ILicenseToken**
+
+---
+
+### **Step 3: Set royalty**
+
+* **Interface:** `IRoyaltyModule.setRoyaltyConfig`
+* **Structs used:** `RoyaltyConfig`
+* **Frontend:** Choose % of revenue, receiver wallet
+* **Backend:** Validate wallet, fee calculation
+* **On-chain:** Stored in RoyaltyModule, connected to IP Account
+
+---
+
+### **Step 4: Mint derivative (optional)**
+
+* **Interface:** `IStoryPeriphery.registerDerivativeIP` or `ILicensingModule.registerDerivative`
+* **Structs used:** `LicenseTerms`
+* **Frontend:** User uploads derivative NFT
+* **Backend:** Prepare metadata and license
+* **On-chain:** Derivative IP Account deployed → registered as child of parent IP
+
+---
+
+### **Step 5: Marketplace integration**
+
+* **Frontend:** Show NFTs (original + derivatives), metadata, license info, royalty info
+* **Backend:** Index `IIPAssetRegistry`, `ILicenseToken`, `IRoyaltyModule` events for listings, royalties, ownership
+* **On-chain:**
+
+  * Marketplaces can read license terms via `ILicenseToken.getLicenseTerms`
+  * Calculate royalties with `IRoyaltyModule.calculateRoyalty`
+  * Use `IIPAccount.execute` to trigger license/royalty actions when a sale happens
+
+---
+
+### **Step 6: Sales + Royalty distribution**
+
+* **Sale triggers**: execute license/royalty distribution via IP Account → LicensingModule → RoyaltyModule
+* **Frontend:** Show revenue split, updated ownership
+* **Backend:** Track sales, royalties, derivatives, user dashboards
+
+---
+
+### **Step 7: Optional workflow automations**
+
+* Auto-register new NFTs
+* Auto-attach standard license
+* Auto-setup royalty
+* Auto-generate derivative workflow
+
+**All these can be wrapped in `IStoryPeriphery`** for a **one-call integration** per NFT creation.
+
+---
+
+### **Visual Flow (Simplified)**
+
+```
+Frontend collects data
+        |
+        v
+Upload metadata to IPFS/backend
+        |
+        v
+Periphery.registerIPAssetFull()
+        |
+        +--> IIPAssetRegistry.registerWithMetadata() --> deploy IP Account (ipId)
+        +--> ILicensingModule.attachLicenseTerms()
+        +--> IRoyaltyModule.setRoyaltyConfig()
+        |
+        v
+Return ipId to frontend
+        |
+        v
+Marketplace uses:
+        - IIPAssetRegistry.ipId()
+        - ILicenseToken.getLicenseTerms()
+        - IRoyaltyModule.calculateRoyalty()
+        - IPAccount.execute() for module calls
+```
+

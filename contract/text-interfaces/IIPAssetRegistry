@@ -1,0 +1,130 @@
+
+### **IIPAssetRegistry**
+
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+interface IIPAssetRegistry {
+    /// @notice Returns the ipId (address) for given chainId + NFT contract + tokenId
+    function ipId(
+        uint256 chainId,
+        address tokenContract,
+        uint256 tokenId
+    ) external view returns (address);
+
+    /// @notice Registers an NFT as IP Asset. Returns the deployed ipId (IP Account address)
+    function register(
+        uint256 chainId,
+        address tokenContract,
+        uint256 tokenId
+    ) external returns (address);
+
+    /// @notice Registers an NFT with full IP + NFT metadata
+    function registerWithMetadata(
+        uint256 chainId,
+        address tokenContract,
+        uint256 tokenId,
+        IPMetadata calldata ipMetadata
+    ) external returns (address);
+}
+
+/// STRUCT USED BY registerWithMetadata
+struct IPMetadata {
+    string ipMetadataURI;      // Location of IP metadata JSON (IPFS or backend)
+    bytes32 ipMetadataHash;    // Hash of IP metadata JSON
+    string nftMetadataURI;     // Location of NFT metadata JSON
+    bytes32 nftMetadataHash;   // Hash of NFT metadata JSON
+}
+```
+
+---
+
+# ✔ Explanation & Where Each Variable Comes From
+
+### **1. `chainId`**
+
+Where it comes from:
+
+* **Frontend**: `await provider.getNetwork()`
+* **Backend**: via RPC (`eth_chainId`)
+* Value must match Story’s chain (Aeneid testnet or mainnet).
+
+---
+
+### **2. `tokenContract`**
+
+Where it comes from:
+
+* Your deployed **ERC-721 NFT contract address**
+* Provided by backend deployment scripts
+* Or from frontend after selecting an NFT collection.
+
+---
+
+### **3. `tokenId`**
+
+Where it comes from:
+
+* Returned after minting the NFT
+* Retrieve in frontend via transaction receipt
+* Backend can also index via event logs.
+
+---
+
+# ✔ Metadata Struct Variable Sources
+
+### **4. `ipMetadataURI`**
+
+Where it comes from:
+
+* You upload your IP JSON (e.g., story description, attributes) to **IPFS or backend storage**.
+* The resulting URL becomes `ipMetadataURI`.
+
+---
+
+### **5. `ipMetadataHash`**
+
+Where it comes from:
+
+* Computed from IP JSON on **backend** or **frontend**:
+
+```js
+ethers.utils.keccak256(ethers.utils.toUtf8Bytes(JSON.stringify(obj)));
+```
+
+---
+
+### **6. `nftMetadataURI`**
+
+Where it comes from:
+
+* Standard ERC-721 metadata JSON stored on:
+
+  * **IPFS**,
+  * **your backend**,
+  * or an NFT CDN.
+
+---
+
+### **7. `nftMetadataHash`**
+
+Where it comes from:
+
+* Same hashing method as IP metadata
+* Compute on backend/frontend before sending.
+
+---
+
+# ✔ Returned Variable
+
+### **8. `ipId (address)`**
+
+Where it comes from:
+
+* Returned by `register` or `registerWithMetadata`
+* Or queried later using `ipId(chainId, token, tokenId)`
+* THIS becomes your “IP Account contract address”
+
+---
+
