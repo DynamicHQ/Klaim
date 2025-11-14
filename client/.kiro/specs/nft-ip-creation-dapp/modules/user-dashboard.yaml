@@ -1,0 +1,291 @@
+module_name: "User Dashboard"
+version: "1.0.0"
+description: "Displays user's NFTs/IPs, ownership details, metadata, and royalty information"
+
+dependencies:
+  - wallet_connection
+  - database_sync
+  - metadata_cache
+  - blockchain_reader
+
+inputs:
+  user_wallet:
+    type: "string"
+    pattern: "^0x[a-fA-F0-9]{40}$"
+    required: true
+  
+  filters:
+    type: "object"
+    properties:
+      search_query:
+        type: "string"
+        optional: true
+      sort_by:
+        type: "string"
+        enum: ["created_date", "title", "royalty_earnings"]
+        default: "created_date"
+      sort_order:
+        type: "string"
+        enum: ["asc", "desc"]
+        default: "desc"
+      page:
+        type: "number"
+        min: 1
+        default: 1
+      limit:
+        type: "number"
+        min: 1
+        max: 100
+        default: 20
+
+outputs:
+  nft_list:
+    type: "object"
+    properties:
+      items:
+        type: "array"
+        items:
+          type: "object"
+          properties:
+            nft_id:
+              type: "string"
+            ip_id:
+              type: "string"
+            title:
+              type: "string"
+            description:
+              type: "string"
+            image_url:
+              type: "string"
+              format: "uri"
+            metadata_uri:
+              type: "string"
+              format: "uri"
+            creator_wallet:
+              type: "string"
+            royalty_percentage:
+              type: "number"
+            royalty_recipient:
+              type: "string"
+            transaction_hash:
+              type: "string"
+            created_at:
+              type: "string"
+              format: "datetime"
+            attributes:
+              type: "array"
+            royalty_earnings:
+              type: "object"
+              properties:
+                total_earned:
+                  type: "number"
+                currency:
+                  type: "string"
+                last_payment:
+                  type: "string"
+                  format: "datetime"
+      pagination:
+        type: "object"
+        properties:
+          current_page:
+            type: "number"
+          total_pages:
+            type: "number"
+          total_items:
+            type: "number"
+          has_next:
+            type: "boolean"
+          has_previous:
+            type: "boolean"
+  
+  portfolio_stats:
+    type: "object"
+    properties:
+      total_nfts:
+        type: "number"
+      total_ips:
+        type: "number"
+      total_royalty_earnings:
+        type: "number"
+      active_licenses:
+        type: "number"
+
+workflow_steps:
+  frontend:
+    1: "Check wallet connection"
+    2: "Fetch user's NFT/IP portfolio"
+    3: "Display loading state"
+    4: "Render NFT grid/list"
+    5: "Show portfolio statistics"
+    6: "Handle pagination"
+    7: "Enable search/filter functionality"
+    8: "Display individual NFT details on click"
+  
+  backend:
+    1: "Receive dashboard request"
+    2: "Validate wallet address"
+    3: "Query database for user's NFTs/IPs"
+    4: "Fetch metadata from cache/IPFS"
+    5: "Calculate royalty earnings"
+    6: "Apply filters and pagination"
+    7: "Return formatted response"
+
+frontend_triggers:
+  - component: "Dashboard"
+    event: "onMount"
+    action: "GET /api/user/{wallet}/portfolio"
+  
+  - component: "SearchBar"
+    event: "onSearch"
+    action: "GET /api/user/{wallet}/portfolio?search={query}"
+  
+  - component: "FilterDropdown"
+    event: "onChange"
+    action: "GET /api/user/{wallet}/portfolio?sort_by={field}"
+  
+  - component: "NFTCard"
+    event: "onClick"
+    action: "Navigate to NFT detail page"
+
+backend_handling:
+  api_endpoints:
+    portfolio: "/api/user/{wallet}/portfolio"
+    nft_detail: "/api/nft/{id}"
+    royalty_earnings: "/api/user/{wallet}/royalties"
+  
+  methods: ["GET"]
+  
+  middleware:
+    - "validateWallet"
+    - "cacheResponse"
+  
+  service_calls:
+    - "DatabaseService.getUserNFTs()"
+    - "MetadataService.resolveMetadata()"
+    - "RoyaltyService.calculateEarnings()"
+
+example_data_structures:
+  request:
+    wallet: "0x742d35Cc6634C0532925a3b8D4C9db96590c6C87"
+    filters:
+      search_query: "digital art"
+      sort_by: "created_date"
+      sort_order: "desc"
+      page: 1
+      limit: 20
+  
+  response:
+    success: true
+    data:
+      items:
+        - nft_id: "1"
+          ip_id: "0xabcdef1234567890abcdef1234567890abcdef12"
+          title: "Digital Art Masterpiece"
+          description: "A unique digital artwork..."
+          image_url: "https://ipfs.io/ipfs/QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG"
+          metadata_uri: "ipfs://QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG"
+          creator_wallet: "0x742d35Cc6634C0532925a3b8D4C9db96590c6C87"
+          royalty_percentage: 7.5
+          royalty_recipient: "0x742d35Cc6634C0532925a3b8D4C9db96590c6C87"
+          transaction_hash: "0x1234567890abcdef..."
+          created_at: "2024-01-15T10:30:00Z"
+          attributes:
+            - trait_type: "Style"
+              value: "Abstract"
+          royalty_earnings:
+            total_earned: 0.5
+            currency: "ETH"
+            last_payment: "2024-01-20T15:45:00Z"
+      pagination:
+        current_page: 1
+        total_pages: 3
+        total_items: 45
+        has_next: true
+        has_previous: false
+      portfolio_stats:
+        total_nfts: 45
+        total_ips: 45
+        total_royalty_earnings: 2.3
+        active_licenses: 12
+
+ui_components:
+  NFTGrid:
+    layout: "responsive_grid"
+    card_components:
+      - "NFTImage"
+      - "NFTTitle"
+      - "NFTDescription"
+      - "RoyaltyBadge"
+      - "CreatedDate"
+    actions:
+      - "View Details"
+      - "Share"
+      - "Edit Metadata"
+  
+  PortfolioStats:
+    metrics:
+      - "Total NFTs Created"
+      - "Total IP Registered"
+      - "Royalty Earnings"
+      - "Active Licenses"
+    visualization: "cards_with_icons"
+  
+  SearchAndFilter:
+    search_placeholder: "Search your NFTs..."
+    filters:
+      - "Sort by Date"
+      - "Sort by Title"
+      - "Sort by Earnings"
+    debounce_delay: 300
+
+ui_states:
+  loading:
+    skeleton_cards: 6
+    loading_text: "Loading your portfolio..."
+  
+  empty:
+    illustration: "empty_portfolio"
+    message: "You haven't created any NFTs yet"
+    cta_button: "Create Your First NFT"
+  
+  error:
+    error_message: "Failed to load portfolio"
+    retry_button: true
+  
+  loaded:
+    display_grid: true
+    enable_interactions: true
+
+display_logic:
+  nft_card:
+    image_fallback: "default_nft_placeholder.png"
+    title_truncation: 50
+    description_truncation: 100
+    royalty_display: "percentage_badge"
+  
+  metadata_resolution:
+    cache_first: true
+    fallback_to_ipfs: true
+    timeout: 5000
+  
+  earnings_calculation:
+    real_time_updates: false
+    update_frequency: "hourly"
+    currency_conversion: true
+
+error_scenarios:
+  - scenario: "Wallet not connected"
+    display: "Connect wallet prompt"
+    action: "Redirect to wallet connection"
+  
+  - scenario: "No NFTs found"
+    display: "Empty state with CTA"
+    action: "Navigate to create page"
+  
+  - scenario: "Metadata loading failed"
+    display: "Placeholder with retry option"
+    action: "Retry metadata fetch"
+  
+  - scenario: "Network error"
+    display: "Error banner with retry"
+    action: "Refresh page data"
