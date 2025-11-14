@@ -1,77 +1,67 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { FaSpinner, FaExclamationTriangle, FaWallet, FaUpload, FaDownload } from 'react-icons/fa';
-import { getUserIPs, listOnMarketplace } from '@/utils/api';
-import { useWallet } from '@/hooks/useWallet';
+import { useRouter } from 'next/navigation';
+import { FaSpinner, FaWallet, FaUpload, FaDownload } from 'react-icons/fa';
+import { getMyNFTs, listNFTOnMarketplace, getConnectedWallet, initializeStorage } from '@/utils/mockData';
 
 export default function Profile() {
-  const { account, isConnected, connectWallet } = useWallet();
-  const [myIPs, setMyIPs] = useState([]);
+  const router = useRouter();
+  const [myNFTs, setMyNFTs] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [listingIP, setListingIP] = useState(null);
+  const [listingNFT, setListingNFT] = useState(null);
   const [listPrice, setListPrice] = useState('');
+  const [wallet, setWallet] = useState(null);
 
   useEffect(() => {
-    if (isConnected && account) {
-      fetchMyIPs();
-    }
-  }, [isConnected, account]);
-
-  const fetchMyIPs = async () => {
-    if (!account) return;
+    initializeStorage();
+    const connectedWallet = getConnectedWallet();
+    setWallet(connectedWallet);
     
-    setLoading(true);
-    try {
-      const ips = await getUserIPs(account);
-      setMyIPs(ips);
-      setError(null);
-    } catch (err) {
-      setError('Failed to load your IPs');
-      console.error('Error fetching IPs:', err);
-    } finally {
-      setLoading(false);
+    if (connectedWallet) {
+      fetchMyNFTs();
     }
+  }, []);
+
+  const fetchMyNFTs = () => {
+    setLoading(true);
+    setTimeout(() => {
+      const nfts = getMyNFTs();
+      setMyNFTs(nfts);
+      setLoading(false);
+    }, 500);
   };
 
-  const handleListOnMarketplace = async (ip) => {
-    setListingIP(ip);
+  const handleListOnMarketplace = (nft) => {
+    setListingNFT(nft);
   };
 
-  const confirmListing = async () => {
+  const confirmListing = () => {
     if (!listPrice || parseFloat(listPrice) <= 0) {
       alert('Please enter a valid price');
       return;
     }
 
-    try {
-      await listOnMarketplace(
-        listingIP.nftContract || '0x0000000000000000000000000000000000000000',
-        listingIP.tokenId || 0,
-        parseFloat(listPrice),
-        account
-      );
-      
+    const success = listNFTOnMarketplace(listingNFT, listPrice);
+    if (success) {
       alert('Successfully listed on marketplace!');
-      setListingIP(null);
+      setListingNFT(null);
       setListPrice('');
-      fetchMyIPs();
-    } catch (err) {
-      console.error('Listing failed:', err);
-      alert(err.message || 'Failed to list on marketplace');
+      fetchMyNFTs();
+    } else {
+      alert('Failed to list on marketplace');
     }
   };
 
-  const handleDownload = (ip) => {
-    if (ip.image_url) {
-      window.open(ip.image_url, '_blank');
+  const handleDownload = (nft) => {
+    if (nft.image_url) {
+      window.open(nft.image_url, '_blank');
     } else {
       alert('No file available for download');
     }
   };
 
-  if (!isConnected) {
+  if (!wallet) {
     return (
       <div className="min-h-screen bg-base-200 pt-20">
         <div className="container mx-auto px-4 py-8">
@@ -80,10 +70,10 @@ export default function Profile() {
               <FaWallet className="text-6xl text-primary mx-auto mb-4" />
               <h2 className="card-title justify-center text-2xl mb-4">Connect Your Wallet</h2>
               <p className="text-base-content/70 mb-4">
-                Connect your wallet to view your IP collection
+                Connect your wallet to view your NFT collection
               </p>
-              <button onClick={connectWallet} className="btn btn-primary">
-                Connect Wallet
+              <button onClick={() => router.push('/')} className="btn btn-primary">
+                Go to Home
               </button>
             </div>
           </div>
@@ -98,7 +88,7 @@ export default function Profile() {
         <div className="container mx-auto px-4 py-8">
           <div className="text-center">
             <FaSpinner className="animate-spin text-4xl text-primary mx-auto mb-4" />
-            <p className="text-lg">Loading your IPs...</p>
+            <p className="text-lg">Loading your NFTs...</p>
           </div>
         </div>
       </div>
@@ -109,71 +99,50 @@ export default function Profile() {
     <div className="min-h-screen bg-base-200 pt-20">
       <div className="container mx-auto px-4 py-8">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold mb-2">My IPs</h1>
+          <h1 className="text-4xl font-bold mb-2">My NFTs</h1>
           <p className="text-base-content/70">
-            Your intellectual property collection
+            Your NFT collection
           </p>
           <p className="text-sm text-base-content/50 mt-2">
-            Connected: {account?.slice(0, 6)}...{account?.slice(-4)}
+            Connected: {wallet?.slice(0, 6)}...{wallet?.slice(-4)}
           </p>
         </div>
 
-        {error && (
-          <div className="alert alert-error mb-6 max-w-2xl mx-auto">
-            <FaExclamationTriangle />
-            <span>{error}</span>
-            <button onClick={fetchMyIPs} className="btn btn-sm">Retry</button>
-          </div>
-        )}
-
-        {myIPs.length > 0 ? (
+        {myNFTs.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {myIPs.map((ip) => (
-              <div key={ip._id} className="card bg-base-100 shadow-xl">
+            {myNFTs.map((nft) => (
+              <div key={nft.id} className="card bg-base-100 shadow-xl">
                 <figure className="relative">
                   <img
-                    src={ip.image_url || 'https://via.placeholder.com/400x300/374151/9CA3AF?text=No+Image'}
-                    alt={ip.name || ip.title}
+                    src={nft.image_url || 'https://via.placeholder.com/400x300/374151/9CA3AF?text=No+Image'}
+                    alt={nft.name}
                     className="w-full h-48 object-cover"
                   />
-                  {ip.isListed && (
-                    <div className="absolute top-2 right-2">
-                      <div className="badge badge-success">Listed</div>
-                    </div>
-                  )}
                 </figure>
                 
                 <div className="card-body p-4">
                   <h3 className="card-title text-lg line-clamp-1">
-                    {ip.name || ip.title}
+                    {nft.name}
                   </h3>
                   <p className="text-sm text-base-content/70 line-clamp-2">
-                    {ip.description}
+                    {nft.description}
                   </p>
-                  
-                  {ip.isListed && (
-                    <p className="text-primary font-bold">
-                      Listed for {ip.price} IPT
-                    </p>
-                  )}
                   
                   <div className="card-actions justify-end mt-4">
                     <button 
                       className="btn btn-sm btn-outline"
-                      onClick={() => handleDownload(ip)}
+                      onClick={() => handleDownload(nft)}
                     >
                       <FaDownload className="mr-1" />
                       Download
                     </button>
-                    {!ip.isListed && (
-                      <button 
-                        className="btn btn-sm btn-primary"
-                        onClick={() => handleListOnMarketplace(ip)}
-                      >
-                        <FaUpload className="mr-1" />
-                        List
-                      </button>
-                    )}
+                    <button 
+                      className="btn btn-sm btn-primary"
+                      onClick={() => handleListOnMarketplace(nft)}
+                    >
+                      <FaUpload className="mr-1" />
+                      List
+                    </button>
                   </div>
                 </div>
               </div>
@@ -182,13 +151,13 @@ export default function Profile() {
         ) : (
           <div className="text-center py-12">
             <div className="text-6xl mb-4">📦</div>
-            <h3 className="text-2xl font-bold mb-2">No IPs Yet</h3>
+            <h3 className="text-2xl font-bold mb-2">No NFTs Yet</h3>
             <p className="text-base-content/70 mb-4">
-              Create your first IP or purchase from the marketplace
+              Create your first NFT or purchase from the marketplace
             </p>
             <div className="flex gap-4 justify-center">
               <a href="/create" className="btn btn-primary">
-                Create IP
+                Create NFT
               </a>
               <a href="/marketplace" className="btn btn-outline">
                 Browse Marketplace
@@ -197,13 +166,12 @@ export default function Profile() {
           </div>
         )}
 
-        {/* Listing Modal */}
-        {listingIP && (
+        {listingNFT && (
           <div className="modal modal-open">
             <div className="modal-box">
               <h3 className="font-bold text-xl mb-4">List on Marketplace</h3>
               <p className="mb-4">
-                List <strong>{listingIP.name || listingIP.title}</strong> for sale
+                List <strong>{listingNFT.name}</strong> for sale
               </p>
               
               <div className="form-control mb-4">
@@ -217,7 +185,7 @@ export default function Profile() {
                   onChange={(e) => setListPrice(e.target.value)}
                   className="input input-bordered"
                   min="0"
-                  step="0.01"
+                  step="0.1"
                 />
               </div>
               
@@ -225,7 +193,7 @@ export default function Profile() {
                 <button 
                   className="btn"
                   onClick={() => {
-                    setListingIP(null);
+                    setListingNFT(null);
                     setListPrice('');
                   }}
                 >
@@ -242,7 +210,7 @@ export default function Profile() {
             <div 
               className="modal-backdrop"
               onClick={() => {
-                setListingIP(null);
+                setListingNFT(null);
                 setListPrice('');
               }}
             ></div>
