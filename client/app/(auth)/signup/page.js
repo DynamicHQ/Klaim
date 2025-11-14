@@ -1,5 +1,4 @@
 'use client';
-import { useWallet } from '@/hooks/useWallet';
 import { FaWallet } from 'react-icons/fa';
 
 export default function Signup() {
