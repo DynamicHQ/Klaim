@@ -13,7 +13,7 @@ const oswald = Oswald({
 export default function Home() {
   return (
     <main className="bg-background flex flex-col items-center justify-between">
-      <div className="hero min-h-screen bg-primary/5 relative overflow-hidden">
+      <div className="hero min-h-screen bg-main/5 relative overflow-hidden">
         {/* Background Blobs */}
         <div className="absolute inset-0 pointer-events-none overflow-x-auto">
           <img src="/offsetBlobs.svg" className="h-full w-full object-cover object-right" />

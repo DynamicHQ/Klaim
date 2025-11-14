@@ -1,0 +1,209 @@
+module_name: "NFT/IP Creation"
+version: "1.0.0"
+description: "Handles atomic NFT minting and IP registration using Story Protocol"
+
+dependencies:
+  - wallet_connection
+  - ipfs_storage
+  - story_protocol_sdk
+  - database_sync
+
+inputs:
+  metadata:
+    type: "object"
+    required: true
+    properties:
+      title:
+        type: "string"
+        max_length: 100
+        required: true
+      description:
+        type: "string"
+        max_length: 1000
+        required: true
+      image:
+        type: "file"
+        formats: ["jpg", "png", "gif", "webp"]
+        max_size: "10MB"
+        required: true
+      attributes:
+        type: "array"
+        items:
+          type: "object"
+          properties:
+            trait_type: 
+              type: "string"
+            value:
+              type: "string"
+      royalty_percentage:
+        type: "number"
+        min: 0
+        max: 100
+        default: 5
+      royalty_recipient:
+        type: "string"
+        pattern: "^0x[a-fA-F0-9]{40}$"
+        optional: true
+  
+  creator_wallet:
+    type: "string"
+    pattern: "^0x[a-fA-F0-9]{40}$"
+    required: true
+
+outputs:
+  success:
+    type: "object"
+    properties:
+      transaction_hash:
+        type: "string"
+        pattern: "^0x[a-fA-F0-9]{64}$"
+      nft_id:
+        type: "string"
+      ip_id:
+        type: "string"
+        pattern: "^0x[a-fA-F0-9]{40}$"
+      metadata_uri:
+        type: "string"
+        format: "uri"
+      block_number:
+        type: "number"
+      gas_used:
+        type: "number"
+  
+  error:
+    type: "object"
+    properties:
+      error_code:
+        type: "string"
+        enum: ["VALIDATION_ERROR", "WALLET_ERROR", "CONTRACT_ERROR", "NETWORK_ERROR"]
+      message:
+        type: "string"
+      details:
+        type: "object"
+
+workflow_steps:
+  frontend:
+    1: "User fills NFT creation form"
+    2: "Validate form data client-side"
+    3: "Check wallet connection"
+    4: "Show loading state"
+    5: "Call backend API endpoint"
+    6: "Handle response (success/error)"
+    7: "Update UI state"
+    8: "Display result to user"
+  
+  backend:
+    1: "Receive API request"
+    2: "Validate request parameters"
+    3: "Verify wallet signature"
+    4: "Upload image to IPFS"
+    5: "Create metadata JSON"
+    6: "Upload metadata to IPFS"
+    7: "Call Story Protocol createAndRegisterIP"
+    8: "Wait for transaction confirmation"
+    9: "Store result in database"
+    10: "Return response to frontend"
+
+frontend_triggers:
+  - component: "NFTCreationForm"
+    event: "onSubmit"
+    action: "POST /api/nft/create"
+  
+  - component: "WalletConnector"
+    event: "onConnect"
+    action: "Enable form submission"
+
+backend_handling:
+  api_endpoint: "/api/nft/create"
+  method: "POST"
+  middleware:
+    - "validateRequest"
+    - "verifyWallet"
+    - "rateLimiter"
+  
+  service_calls:
+    - "IPFSService.uploadImage()"
+    - "IPFSService.uploadMetadata()"
+    - "StoryProtocolService.createAndRegisterIP()"
+    - "DatabaseService.storeNFTIP()"
+
+example_data_structures:
+  request:
+    metadata:
+      title: "Digital Art Masterpiece"
+      description: "A unique digital artwork representing..."
+      image: "File object"
+      attributes:
+        - trait_type: "Style"
+          value: "Abstract"
+        - trait_type: "Rarity"
+          value: "Legendary"
+      royalty_percentage: 7.5
+      royalty_recipient: "0x742d35Cc6634C0532925a3b8D4C9db96590c6C87"
+    creator_wallet: "0x742d35Cc6634C0532925a3b8D4C9db96590c6C87"
+    signature: "0x..."
+  
+  response_success:
+    success: true
+    data:
+      transaction_hash: "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"
+      nft_id: "1"
+      ip_id: "0xabcdef1234567890abcdef1234567890abcdef12"
+      metadata_uri: "ipfs://QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG"
+      block_number: 18500000
+      gas_used: 250000
+  
+  response_error:
+    success: false
+    error:
+      error_code: "CONTRACT_ERROR"
+      message: "Insufficient funds for gas"
+      details:
+        required_gas: 250000
+        available_balance: 0.001
+
+ui_states:
+  idle:
+    form_enabled: true
+    submit_button: "Create NFT & Register IP"
+    loading_indicator: false
+  
+  loading:
+    form_enabled: false
+    submit_button: "Creating NFT/IP..."
+    loading_indicator: true
+    progress_steps:
+      - "Uploading image to IPFS"
+      - "Creating metadata"
+      - "Submitting transaction"
+      - "Waiting for confirmation"
+  
+  success:
+    form_enabled: false
+    display_result: true
+    actions:
+      - "View on Explorer"
+      - "Create Another"
+      - "Go to Portfolio"
+  
+  error:
+    form_enabled: true
+    error_message: true
+    retry_button: true
+
+error_scenarios:
+  - scenario: "Invalid image format"
+    trigger: "File upload validation"
+    response: "Please upload a valid image file (JPG, PNG, GIF, WebP)"
+  
+  - scenario: "Wallet not connected"
+    trigger: "Form submission without wallet"
+    response: "Please connect your wallet to continue"
+  
+  - scenario: "Insufficient gas"
+    trigger: "Transaction simulation"
+    response: "Insufficient funds for gas. Please add ETH to your wallet"
+  
+  - scenario: "Network congestion"
+    trigger: "Transaction timeout"
+    response: "Network is congested. Please try again later"

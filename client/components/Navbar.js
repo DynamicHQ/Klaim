@@ -1,18 +1,44 @@
-import Image from "next/image"
-import { FaUser, FaStore, FaInfoCircle, FaQuestionCircle, FaSignOutAlt } from "react-icons/fa";
+'use client';
 
-export default function navbar() {
+import Link from "next/link"
+import Image from "next/image"
+import { FaUser, FaStore, FaInfoCircle, FaQuestionCircle, FaSignOutAlt, FaPlus, FaWallet } from "react-icons/fa";
+import { useWallet } from "@/hooks/useWallet";
+
+export default function Navbar() {
+  const { account, isConnected, isConnecting, connectWallet } = useWallet();
+  
   return (
     <div className="navbar bg-base-100/95 shadow-sm fixed top-0 z-1000 h-5">
       <div className="flex-1">
-        <a href="/">
-            <Image src="/logo.png" height={24} width={150} />
-        </a>
+        <Link href="/">
+            <Image src="/logo.png" height={24} width={150} alt="Logo" />
+        </Link>
       </div>
       <div className="flex gap-2 md:gap-4">
+        <a href="/create" className="btn btn-primary btn-sm">
+          <FaPlus className="w-4 h-4" />
+          Create
+        </a>
+        
+        {!isConnected ? (
+          <button 
+            onClick={connectWallet}
+            className={`btn btn-outline btn-sm ${isConnecting ? 'loading' : ''}`}
+            disabled={isConnecting}
+          >
+            <FaWallet className="w-4 h-4" />
+            {isConnecting ? 'Connecting...' : 'Connect'}
+          </button>
+        ) : (
+          <div className="badge badge-success">
+            {account?.slice(0, 6)}...{account?.slice(-4)}
+          </div>
+        )}
+        
         <label className="swap swap-rotate">
   {/* this hidden checkbox controls the state */}
-  <input type="checkbox" className="theme-controller" value="synthwave" />
+  <input type="checkbox" className="theme-controller" value="dark" />
 
   {/* sun icon */}
   <svg
@@ -54,10 +80,10 @@ export default function navbar() {
           </a>
         </li>
         <li>
-          <a>
+          <a href="/marketplace">
             <div className="flex items-center gap-2">
               <FaStore />
-              Store
+              Marketplace
             </div>
           </a>
         </li>

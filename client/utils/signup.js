@@ -1,11 +1,13 @@
-"use server"
 import { ethers } from "ethers";
 
-export default async function handleSignup() {
+export default async function handleSignup(e) {
+  // If called as an event handler, prevent default submit behavior
+  if (e && typeof e.preventDefault === 'function') e.preventDefault();
+
   try {
-    // Check if MetaMask is installed
-    if (typeof window.ethereum === "undefined") {
-      throw new Error("Please install MetaMask Extension to continue");
+    // Ensure we're running in the browser and MetaMask is available
+    if (typeof window === 'undefined' || typeof window.ethereum === "undefined") {
+      return { success: false, error: "Please install MetaMask Extension to continue" };
     }
 
     // Request account access
@@ -19,7 +21,7 @@ export default async function handleSignup() {
     const address = await signer.getAddress();
 
     // Store wallet address in localStorage
-    localStorage.setItem('walletAddress', address);
+    if (typeof localStorage !== 'undefined') localStorage.setItem('walletAddress', address);
 
     // Send wallet address to API
     // Note: API endpoint should be configured in .env
@@ -43,6 +45,6 @@ export default async function handleSignup() {
 
   } catch (error) {
     console.error('Signup error:', error);
-    return { success: false, error: error.message };
+    return { success: false, error: error?.message || String(error) };
   }
 }
