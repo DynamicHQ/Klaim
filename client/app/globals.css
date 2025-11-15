@@ -10,8 +10,8 @@
 }
 
 @theme light {
-  --main: #845efc;
-  --primary-text: #121212;
+  --color-main: var(--main);
+  --color-primary-text: var(--);
   --secondary-text: #555555;
   --background: #f0f0f0;
   --card: #ffffff;

@@ -1,26 +1,28 @@
 'use client';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { FaUpload, FaSpinner, FaCheck, FaWallet } from 'react-icons/fa';
+import { createNFT, uploadImageToBase64, getConnectedWallet, initializeStorage } from '@/utils/mockData';
 
-import { useState } from 'react';
-import { FaUpload, FaSpinner, FaCheck, FaExclamationTriangle, FaWallet } from 'react-icons/fa';
-import { storyProtocolService, validateMetadata, formatMetadataForStoryProtocol } from '@/utils/storyProtocol';
-import { useWallet } from '@/hooks/useWallet';
-
-export default function RegisterIP() {
-  const { account, isConnected, isConnecting, error: walletError, connectWallet } = useWallet();
+export default function CreateNFT() {
+  const router = useRouter();
+  const [wallet, setWallet] = useState(null);
   
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    image: null,
-    attributes: [{ trait_type: '', value: '' }],
-    royaltyPercentage: 5,
-    royaltyRecipient: ''
+    image: null
   });
   
-  const [status, setStatus] = useState('idle'); // idle, loading, success, error
+  const [status, setStatus] = useState('idle');
   const [error, setError] = useState('');
   const [transactionResult, setTransactionResult] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
+
+  useEffect(() => {
+    initializeStorage();
+    setWallet(getConnectedWallet());
+  }, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -33,13 +35,11 @@ export default function RegisterIP() {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      // Validate file type
       if (!file.type.startsWith('image/')) {
         setError('Please select a valid image file');
         return;
       }
       
-      // Validate file size (max 10MB)
       if (file.size > 10 * 1024 * 1024) {
         setError('Image size must be less than 10MB');
         return;
@@ -47,7 +47,6 @@ export default function RegisterIP() {
 
       setFormData(prev => ({ ...prev, image: file }));
       
-      // Create preview
       const reader = new FileReader();
       reader.onload = (e) => setImagePreview(e.target.result);
       reader.readAsDataURL(file);
@@ -55,35 +54,19 @@ export default function RegisterIP() {
     }
   };
 
-  const handleAttributeChange = (index, field, value) => {
-    const newAttributes = [...formData.attributes];
-    newAttributes[index][field] = value;
-    setFormData(prev => ({ ...prev, attributes: newAttributes }));
-  };
-
-  const addAttribute = () => {
-    setFormData(prev => ({
-      ...prev,
-      attributes: [...prev.attributes, { trait_type: '', value: '' }]
-    }));
-  };
-
-  const removeAttribute = (index) => {
-    if (formData.attributes.length > 1) {
-      const newAttributes = formData.attributes.filter((_, i) => i !== index);
-      setFormData(prev => ({ ...prev, attributes: newAttributes }));
-    }
-  };
-
   const validateForm = () => {
-    const metadata = formatMetadataForStoryProtocol(formData);
-    const errors = validateMetadata(metadata);
-    
-    if (errors.length > 0) {
-      setError(errors[0]);
+    if (!formData.title.trim()) {
+      setError('Title is required');
       return false;
     }
-    
+    if (!formData.description.trim()) {
+      setError('Description is required');
+      return false;
+    }
+    if (!formData.image) {
+      setError('Image is required');
+      return false;
+    }
     return true;
   };
 
@@ -98,24 +81,30 @@ export default function RegisterIP() {
     setStatus('loading');
     
     try {
-      // Check wallet connection
-      if (!isConnected || !account) {
+      if (!wallet) {
         setError('Please connect your wallet first');
         setStatus('error');
+        setTimeout(() => router.push('/'), 2000);
         return;
       }
 
-      // Format metadata for Story Protocol
-      const metadata = formatMetadataForStoryProtocol(formData);
+      const imageBase64 = await uploadImageToBase64(formData.image);
       
-      // Create NFT and register IP atomically
-      const result = await storyProtocolService.createAndRegisterIP(metadata, account);
+      const result = createNFT({
+        name: formData.title,
+        description: formData.description,
+        image_url: imageBase64,
+        price: 0
+      });
       
-      setTransactionResult(result);
+      setTransactionResult({
+        nftId: result.id,
+        transactionHash: 'mock-tx-' + result.id
+      });
       setStatus('success');
       
     } catch (err) {
-      setError(err.message || 'Failed to create NFT/IP');
+      setError(err.message || 'Failed to create NFT');
       setStatus('error');
     }
   };
@@ -124,10 +113,7 @@ export default function RegisterIP() {
     setFormData({
       title: '',
       description: '',
-      image: null,
-      attributes: [{ trait_type: '', value: '' }],
-      royaltyPercentage: 5,
-      royaltyRecipient: ''
+      image: null
     });
     setImagePreview(null);
     setStatus('idle');
@@ -140,14 +126,13 @@ export default function RegisterIP() {
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto">
           <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold mb-2">Create NFT & Register IP</h1>
+            <h1 className="text-4xl font-bold mb-2">Create NFT</h1>
             <p className="text-base-content/70">
-              Mint your NFT and register it as intellectual property in one atomic transaction
+              Mint your NFT and add it to your collection
             </p>
           </div>
 
-          {/* Wallet Connection */}
-          {!isConnected && (
+          {!wallet && (
             <div className="card bg-base-100 shadow-xl mb-6">
               <div className="card-body text-center">
                 <h2 className="card-title justify-center mb-4">
@@ -155,29 +140,22 @@ export default function RegisterIP() {
                   Connect Your Wallet
                 </h2>
                 <p className="text-base-content/70 mb-4">
-                  You need to connect your wallet to create NFTs and register IP
+                  You need to connect your wallet to create NFTs
                 </p>
-                {walletError && (
-                  <div className="alert alert-error mb-4">
-                    <FaExclamationTriangle />
-                    <span>{walletError}</span>
-                  </div>
-                )}
                 <button
-                  onClick={connectWallet}
-                  className={`btn btn-primary ${isConnecting ? 'loading' : ''}`}
-                  disabled={isConnecting}
+                  onClick={() => router.push('/')}
+                  className="btn btn-primary"
                 >
-                  {isConnecting ? 'Connecting...' : 'Connect Wallet'}
+                  Go to Home
                 </button>
               </div>
             </div>
           )}
 
-          {isConnected && (
+          {wallet && (
             <div className="alert alert-success mb-6">
               <FaCheck />
-              <span>Wallet connected: {account?.slice(0, 6)}...{account?.slice(-4)}</span>
+              <span>Wallet connected: {wallet?.slice(0, 6)}...{wallet?.slice(-4)}</span>
             </div>
           )}
 
@@ -188,35 +166,26 @@ export default function RegisterIP() {
                   <FaCheck className="mx-auto" />
                 </div>
                 <h2 className="card-title justify-center text-2xl mb-4">
-                  NFT/IP Created Successfully!
+                  NFT Created Successfully!
                 </h2>
                 <div className="space-y-2 text-left">
-                  <p><strong>Transaction Hash:</strong> 
-                    <a href={`https://etherscan.io/tx/${transactionResult.transactionHash}`} 
-                       target="_blank" 
-                       rel="noopener noreferrer"
-                       className="link link-primary ml-2">
-                      {transactionResult.transactionHash}
-                    </a>
-                  </p>
                   <p><strong>NFT ID:</strong> {transactionResult.nftId}</p>
-                  <p><strong>IP ID:</strong> {transactionResult.ipId}</p>
+                  <p><strong>Transaction:</strong> {transactionResult.transactionHash}</p>
                 </div>
                 <div className="card-actions justify-center mt-6">
                   <button onClick={resetForm} className="btn btn-primary">
                     Create Another
                   </button>
-                  <a href="/profile" className="btn btn-outline">
-                    View Portfolio
-                  </a>
+                  <button onClick={() => router.push('/profile')} className="btn btn-outline">
+                    View My NFTs
+                  </button>
                 </div>
               </div>
             </div>
           ) : (
-            <div className={`card bg-base-100 shadow-xl ${!isConnected ? 'opacity-50 pointer-events-none' : ''}`}>
+            <div className={`card bg-base-100 shadow-xl ${!wallet ? 'opacity-50 pointer-events-none' : ''}`}>
               <div className="card-body">
                 <form onSubmit={handleSubmit} className="space-y-6">
-                  {/* Title */}
                   <div className="form-control">
                     <label className="label">
                       <span className="label-text font-semibold">Title *</span>
@@ -233,7 +202,6 @@ export default function RegisterIP() {
                     />
                   </div>
 
-                  {/* Description */}
                   <div className="form-control">
                     <label className="label">
                       <span className="label-text font-semibold">Description *</span>
@@ -242,14 +210,13 @@ export default function RegisterIP() {
                       name="description"
                       value={formData.description}
                       onChange={handleInputChange}
-                      placeholder="Describe your NFT and intellectual property"
+                      placeholder="Describe your NFT"
                       className="textarea textarea-bordered h-24"
                       disabled={status === 'loading'}
                       required
                     />
                   </div>
 
-                  {/* Image Upload */}
                   <div className="form-control">
                     <label className="label">
                       <span className="label-text font-semibold">Image *</span>
@@ -292,109 +259,25 @@ export default function RegisterIP() {
                     </div>
                   </div>
 
-                  {/* Attributes */}
-                  <div className="form-control">
-                    <label className="label">
-                      <span className="label-text font-semibold">Attributes</span>
-                    </label>
-                    <div className="space-y-2">
-                      {formData.attributes.map((attr, index) => (
-                        <div key={index} className="flex gap-2">
-                          <input
-                            type="text"
-                            placeholder="Trait type"
-                            value={attr.trait_type}
-                            onChange={(e) => handleAttributeChange(index, 'trait_type', e.target.value)}
-                            className="input input-bordered flex-1"
-                            disabled={status === 'loading'}
-                          />
-                          <input
-                            type="text"
-                            placeholder="Value"
-                            value={attr.value}
-                            onChange={(e) => handleAttributeChange(index, 'value', e.target.value)}
-                            className="input input-bordered flex-1"
-                            disabled={status === 'loading'}
-                          />
-                          {formData.attributes.length > 1 && (
-                            <button
-                              type="button"
-                              onClick={() => removeAttribute(index)}
-                              className="btn btn-error btn-square"
-                              disabled={status === 'loading'}
-                            >
-                              ×
-                            </button>
-                          )}
-                        </div>
-                      ))}
-                      <button
-                        type="button"
-                        onClick={addAttribute}
-                        className="btn btn-outline btn-sm"
-                        disabled={status === 'loading'}
-                      >
-                        + Add Attribute
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Royalty Settings */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="form-control">
-                      <label className="label">
-                        <span className="label-text font-semibold">Royalty Percentage</span>
-                      </label>
-                      <input
-                        type="number"
-                        name="royaltyPercentage"
-                        value={formData.royaltyPercentage}
-                        onChange={handleInputChange}
-                        min="0"
-                        max="100"
-                        step="0.1"
-                        className="input input-bordered"
-                        disabled={status === 'loading'}
-                      />
-                    </div>
-                    <div className="form-control">
-                      <label className="label">
-                        <span className="label-text font-semibold">Royalty Recipient</span>
-                      </label>
-                      <input
-                        type="text"
-                        name="royaltyRecipient"
-                        value={formData.royaltyRecipient}
-                        onChange={handleInputChange}
-                        placeholder="0x... (optional, defaults to creator)"
-                        className="input input-bordered"
-                        disabled={status === 'loading'}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Error Display */}
                   {error && (
                     <div className="alert alert-error">
-                      <FaExclamationTriangle />
                       <span>{error}</span>
                     </div>
                   )}
 
-                  {/* Submit Button */}
                   <div className="form-control">
                     <button
                       type="submit"
                       className={`btn btn-primary btn-lg w-full ${status === 'loading' ? 'loading' : ''}`}
-                      disabled={status === 'loading' || !isConnected}
+                      disabled={status === 'loading' || !wallet}
                     >
                       {status === 'loading' ? (
                         <>
                           <FaSpinner className="animate-spin mr-2" />
-                          Creating NFT/IP...
+                          Creating NFT...
                         </>
                       ) : (
-                        'Create NFT & Register IP'
+                        'Create NFT'
                       )}
                     </button>
                   </div>
@@ -402,7 +285,7 @@ export default function RegisterIP() {
                   {status === 'loading' && (
                     <div className="text-center">
                       <p className="text-base-content/70">
-                        Please wait while we mint your NFT and register it as IP...
+                        Please wait while we create your NFT...
                       </p>
                       <progress className="progress progress-primary w-full mt-2"></progress>
                     </div>

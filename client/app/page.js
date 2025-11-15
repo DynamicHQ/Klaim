@@ -1,4 +1,9 @@
+'use client';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Inter, Oswald } from "next/font/google";
+import { FaWallet, FaCheck } from 'react-icons/fa';
+import { connectWallet, getConnectedWallet, initializeStorage } from '@/utils/mockData';
 
 const inter = Inter({
   variable: "--font-inter",
@@ -11,6 +16,20 @@ const oswald = Oswald({
 });
 
 export default function Home() {
+  const router = useRouter();
+  const [wallet, setWallet] = useState(null);
+
+  useEffect(() => {
+    initializeStorage();
+    setWallet(getConnectedWallet());
+  }, []);
+
+  const handleConnectWallet = () => {
+    const newWallet = connectWallet();
+    setWallet(newWallet);
+    alert('Wallet connected successfully!');
+  };
+
   return (
     <main className="bg-background flex flex-col items-center justify-between">
       <div className="hero min-h-screen bg-main/5 relative overflow-hidden">
@@ -27,10 +46,27 @@ export default function Home() {
             <p className={`${inter.variable} py-6 text-secondary-text text-lg`}>
               Explore the world of digital ownership with Klaim, the premier platform for creating, managing, and trading IPs. Join our community of creators and collectors today!
             </p>
-            <div className="flex justify-center gap-4">
-              <a href="/login" className="btn bg-main text-white rounded-md px-8 py-6 outline-none transition-transform duration-300 hover:-translate-y-1">Get Started</a>
-              <a href="/docs" className="btn outline-main btn-outline text-main rounded-md px-8 py-6 transition-transform duration-300 hover:-translate-y-1 hover:text-white hover:bg-main">Learn More</a>
-            </div>
+            
+            {wallet ? (
+              <div className="flex flex-col gap-4">
+                <div className="alert alert-success">
+                  <FaCheck />
+                  <span>Connected: {wallet.slice(0, 6)}...{wallet.slice(-4)}</span>
+                </div>
+                <div className="flex justify-center gap-4">
+                  <button onClick={() => router.push('/create')} className="btn bg-main text-white rounded-md px-8 py-6 outline-none transition-transform duration-300 hover:-translate-y-1">Create NFT</button>
+                  <button onClick={() => router.push('/marketplace')} className="btn outline-main btn-outline text-main rounded-md px-8 py-6 transition-transform duration-300 hover:-translate-y-1 hover:text-white hover:bg-main">Marketplace</button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex justify-center gap-4">
+                <button onClick={handleConnectWallet} className="btn bg-main text-white rounded-md px-8 py-6 outline-none transition-transform duration-300 hover:-translate-y-1 flex items-center gap-2">
+                  <FaWallet />
+                  Connect Wallet
+                </button>
+                <a href="/docs" className="btn outline-main btn-outline text-main rounded-md px-8 py-6 transition-transform duration-300 hover:-translate-y-1 hover:text-white hover:bg-main">Learn More</a>
+              </div>
+            )}
           </div>
         </div>
       </div>

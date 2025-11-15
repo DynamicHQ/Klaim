@@ -48,26 +48,6 @@ graph TB
 
 ### Frontend Components
 
-#### Navigation Component
-```typescript
-interface NavigationProps {
-  currentPath: string;
-}
-
-interface NavItem {
-  label: string;
-  href: string;
-  icon?: React.ComponentType;
-}
-```
-
-#### CreatePage Component
-```typescript
-interface CreatePageProps {
-  // Main page component that contains the NFT creation form
-}
-```
-
 #### NFTCreationForm Component
 ```typescript
 interface NFTCreationFormProps {

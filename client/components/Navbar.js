@@ -1,12 +1,28 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Link from "next/link"
 import Image from "next/image"
 import { FaUser, FaStore, FaInfoCircle, FaQuestionCircle, FaSignOutAlt, FaPlus, FaWallet } from "react-icons/fa";
-import { useWallet } from "@/hooks/useWallet";
+import { connectWallet, getConnectedWallet, disconnectWallet, initializeStorage } from '@/utils/mockData';
 
 export default function Navbar() {
-  const { account, isConnected, isConnecting, connectWallet } = useWallet();
+  const [wallet, setWallet] = useState(null);
+
+  useEffect(() => {
+    initializeStorage();
+    setWallet(getConnectedWallet());
+  }, []);
+
+  const handleConnect = () => {
+    const newWallet = connectWallet();
+    setWallet(newWallet);
+  };
+
+  const handleDisconnect = () => {
+    disconnectWallet();
+    setWallet(null);
+  };
   
   return (
     <div className="navbar bg-base-100/95 shadow-sm fixed top-0 z-1000 h-5">
@@ -21,18 +37,17 @@ export default function Navbar() {
           Create
         </a>
         
-        {!isConnected ? (
+        {!wallet ? (
           <button 
-            onClick={connectWallet}
-            className={`btn btn-outline btn-sm ${isConnecting ? 'loading' : ''}`}
-            disabled={isConnecting}
+            onClick={handleConnect}
+            className="btn btn-outline btn-sm"
           >
             <FaWallet className="w-4 h-4" />
-            {isConnecting ? 'Connecting...' : 'Connect'}
+            Connect
           </button>
         ) : (
           <div className="badge badge-success">
-            {account?.slice(0, 6)}...{account?.slice(-4)}
+            {wallet?.slice(0, 6)}...{wallet?.slice(-4)}
           </div>
         )}
         
@@ -71,12 +86,11 @@ export default function Navbar() {
         tabIndex="-1"
         className="menu menu-sm dropdown-content bg-base-100 rounded-box z-1 mt-3 w-52 p-2 shadow md:w-100 md:menu-md">
         <li>
-          <a className="justify-between">
+          <a href="/profile">
            <div className="flex items-center gap-2">
               <FaUser />
-              Profile
+              My NFTs
             </div>
-            <span className="badge">New</span>
           </a>
         </li>
         <li>
@@ -88,7 +102,7 @@ export default function Navbar() {
           </a>
         </li>
         <li>
-          <a>
+          <a href="/docs">
             <div className="flex items-center gap-2">
               <FaInfoCircle />
               About
@@ -103,14 +117,16 @@ export default function Navbar() {
             </div>
           </a>
         </li>
-        <li>
-          <a>
-            <div className="flex items-center gap-2">
-              <FaSignOutAlt />
-              Logout
-            </div>
-          </a>
-        </li>
+        {wallet && (
+          <li>
+            <a onClick={handleDisconnect}>
+              <div className="flex items-center gap-2">
+                <FaSignOutAlt />
+                Disconnect
+              </div>
+            </a>
+          </li>
+        )}
       </ul>
     </div>
   </div>

@@ -13,7 +13,7 @@ const generateNonce = (length = 32): string => {
 export class UserService {
   constructor(@InjectModel(User.name) private userModel: Model<User>) {}
 
-async findOrCreateAndSetNonce(wallet: string): Promise<string> {
+  async findOrCreateAndSetNonce(wallet: string): Promise<string> {
     const newNonce = generateNonce();
     const lowerCaseWallet = wallet.toLowerCase();
 
@@ -46,9 +46,46 @@ async findOrCreateAndSetNonce(wallet: string): Promise<string> {
     }
   }
 
- async findUserById(id: string) {
-        // Use lean() for faster read-only access
+  async findUserById(id: string) {
+    // Use lean() for faster read-only access
     return this.userModel.findById(id).lean().exec(); 
+  }
+
+  async findUserByWallet(wallet: string): Promise<User | null> {
+    const lowerCaseWallet = wallet.toLowerCase();
+    return this.userModel.findOne({ wallet: lowerCaseWallet }).exec();
+  }
+
+  async syncWallet(walletAddress: string): Promise<any> {
+    if (!walletAddress || walletAddress.trim() === '') {
+      return { success: true, message: 'Wallet disconnected' };
     }
-  
+
+    const lowerCaseWallet = walletAddress.toLowerCase();
+    
+    try {
+      let user = await this.userModel.findOne({ wallet: lowerCaseWallet }).exec();
+
+      if (!user) {
+        // Create new user
+        user = await this.userModel.create({
+          wallet: lowerCaseWallet,
+          nonce: generateNonce(),
+          profileName: 'Klaimit User',
+        });
+      }
+
+      return {
+        success: true,
+        user: {
+          id: user._id,
+          wallet: user.wallet,
+          profileName: user.profileName,
+        },
+      };
+    } catch (error) {
+      console.error('Error syncing wallet:', error);
+      throw new InternalServerErrorException('Failed to sync wallet');
+    }
+  }
 }
