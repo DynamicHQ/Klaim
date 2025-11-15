@@ -88,4 +88,67 @@ export class UserService {
       throw new InternalServerErrorException('Failed to sync wallet');
     }
   }
+
+  async createUser(username: string, walletAddress: string): Promise<any> {
+    const lowerCaseWallet = walletAddress.toLowerCase();
+    
+    try {
+      // Check if user already exists
+      const existingUser = await this.userModel.findOne({ wallet: lowerCaseWallet }).exec();
+      if (existingUser) {
+        throw new InternalServerErrorException('User already exists with this wallet');
+      }
+
+      // Create new user
+      const user = await this.userModel.create({
+        wallet: lowerCaseWallet,
+        nonce: generateNonce(),
+        profileName: username || 'Klaimit User',
+      });
+
+      return {
+        success: true,
+        message: 'User created successfully',
+        user: {
+          id: user._id,
+          wallet: user.wallet,
+          profileName: user.profileName,
+        },
+      };
+    } catch (error) {
+      console.error('Error creating user:', error);
+      throw new InternalServerErrorException('Failed to create user');
+    }
+  }
+
+  async loginUser(username: string, walletAddress: string): Promise<any> {
+    const lowerCaseWallet = walletAddress.toLowerCase();
+    
+    try {
+      const user = await this.userModel.findOne({ wallet: lowerCaseWallet }).exec();
+      
+      if (!user) {
+        throw new InternalServerErrorException('User not found');
+      }
+
+      // Update profile name if provided
+      if (username && username !== user.profileName) {
+        user.profileName = username;
+        await user.save();
+      }
+
+      return {
+        success: true,
+        message: 'Login successful',
+        user: {
+          id: user._id,
+          wallet: user.wallet,
+          profileName: user.profileName,
+        },
+      };
+    } catch (error) {
+      console.error('Error logging in user:', error);
+      throw new InternalServerErrorException('Failed to login user');
+    }
+  }
 }

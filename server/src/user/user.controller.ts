@@ -20,4 +20,14 @@ export class UserController {
   async syncWallet(@Body() body: { walletAddress: string }) {
     return this.userService.syncWallet(body.walletAddress);
   }
+
+  @Post('signup')
+  async signup(@Body() body: { username: string; walletAddress: string }) {
+    return this.userService.createUser(body.username, body.walletAddress);
+  }
+
+  @Post('login')
+  async login(@Body() body: { username: string; walletAddress: string }) {
+    return this.userService.loginUser(body.username, body.walletAddress);
+  }
 }

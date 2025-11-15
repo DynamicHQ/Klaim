@@ -1,4 +1,4 @@
-// Mock data and localStorage management - no backend needed
+// Mock data and localStorage management with Cloudinary integration
 
 const STORAGE_KEYS = {
   WALLET: 'connected_wallet',
@@ -7,7 +7,7 @@ const STORAGE_KEYS = {
   ALL_NFTS: 'all_nfts'
 };
 
-// Initialize with some sample marketplace items
+// Initial marketplace items with Unsplash images
 const INITIAL_MARKETPLACE = [
   {
     id: '1',
@@ -87,7 +87,7 @@ export const connectWallet = () => {
   const mockWallet = '0x' + Math.random().toString(16).substr(2, 40);
   localStorage.setItem(STORAGE_KEYS.WALLET, mockWallet);
   return mockWallet;
-}; 
+};
 
 export const disconnectWallet = () => {
   localStorage.removeItem(STORAGE_KEYS.WALLET);
@@ -96,6 +96,39 @@ export const disconnectWallet = () => {
 export const getConnectedWallet = () => {
   if (typeof window === 'undefined') return null;
   return localStorage.getItem(STORAGE_KEYS.WALLET);
+};
+
+// Cloudinary upload function
+export const uploadToCloudinary = async (file) => {
+  const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+  const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
+  
+  if (!cloudName || !uploadPreset) {
+    console.warn('Cloudinary not configured, using base64 fallback');
+    return uploadImageToBase64(file);
+  }
+
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('upload_preset', uploadPreset);
+
+  try {
+    const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+      method: 'POST',
+      body: formData
+    });
+
+    if (!response.ok) {
+      throw new Error('Cloudinary upload failed');
+    }
+
+    const data = await response.json();
+    return data.secure_url;
+  } catch (error) {
+    console.error('Cloudinary upload error:', error);
+    // Fallback to base64
+    return uploadImageToBase64(file);
+  }
 };
 
 // Marketplace functions
@@ -180,4 +213,54 @@ export const uploadImageToBase64 = (file) => {
     reader.onerror = reject;
     reader.readAsDataURL(file);
   });
+};
+
+// API functions for server integration
+export const createNFTOnServer = async (nftData) => {
+  try {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_ENDPOINT}/assets/nft`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        nft_info: {
+          name: nftData.name,
+          description: nftData.description,
+          image_url: nftData.image_url
+        },
+        walletAddress: getConnectedWallet()
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to create NFT on server');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Server NFT creation failed:', error);
+    // Fallback to local storage
+    return createNFT(nftData);
+  }
+};
+
+export const getMarketplaceFromServer = async () => {
+  try {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_ENDPOINT}/assets/marketplace`);
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch marketplace from server');
+    }
+
+    const serverData = await response.json();
+    
+    // Merge server data with local mock data
+    const localData = getMarketplaceItems();
+    return [...serverData, ...localData];
+  } catch (error) {
+    console.error('Server marketplace fetch failed:', error);
+    // Fallback to local storage
+    return getMarketplaceItems();
+  }
 };

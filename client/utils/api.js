@@ -62,6 +62,14 @@ export async function syncWallet(walletAddress) {
   return postJSON('/users/sync-wallet', { walletAddress });
 }
 
+export async function loginUser(username, walletAddress) {
+  return postJSON('/users/login', { username, walletAddress });
+}
+
+export async function signupUser(username, walletAddress) {
+  return postJSON('/users/signup', { username, walletAddress });
+}
+
 export async function createNFT(nft_info, walletAddress) {
   const body = { nft_info };
   if (walletAddress) body.walletAddress = walletAddress;
@@ -130,6 +138,8 @@ export async function readFileAsDataURL(file) {
 
 export default {
   syncWallet,
+  loginUser,
+  signupUser,
   createNFT,
   createIP,
   listOnMarketplace,
