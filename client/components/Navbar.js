@@ -25,14 +25,14 @@ export default function Navbar() {
   };
   
   return (
-    <div className="navbar bg-base-100/95 shadow-sm fixed top-0 z-1000 h-5">
+    <div className="navbar bg-base-100/95 shadow-sm fixed top-0 z-1000 h-5 my-auto">
       <div className="flex-1">
         <Link href="/">
             <Image src="/logo.png" height={24} width={150} alt="Logo" />
         </Link>
       </div>
       <div className="flex gap-2 md:gap-4">
-        <a href="/create" className="btn btn-primary btn-sm">
+        <a href="/create" className="px-8 py-4 btn btn-md bg-main rounded-md text-white hover:bg-main/90 transition-colors">
           <FaPlus className="w-4 h-4" />
           Create
         </a>
@@ -40,7 +40,7 @@ export default function Navbar() {
         {!wallet ? (
           <button 
             onClick={handleConnect}
-            className="btn btn-outline btn-sm"
+            className="px-8 py-4 btn outline-main text-main btn-outline btn-md rounded-md hover:bg-main hover:text-white"
           >
             <FaWallet className="w-4 h-4" />
             Connect
@@ -73,9 +73,9 @@ export default function Navbar() {
       d="M21.64,13a1,1,0,0,0-1.05-.14,8.05,8.05,0,0,1-3.37.73A8.15,8.15,0,0,1,9.08,5.49a8.59,8.59,0,0,1,.25-2A1,1,0,0,0,8,2.36,10.14,10.14,0,1,0,22,14.05,1,1,0,0,0,21.64,13Zm-9.5,6.69A8.14,8.14,0,0,1,7.08,5.22v.27A10.15,10.15,0,0,0,17.22,15.63a9.79,9.79,0,0,0,2.1-.22A8.11,8.11,0,0,1,12.14,19.73Z" />
   </svg>
 </label>
-    <input type="text" placeholder="Search" className="input input-bordered w-40 md:w-60 lg:w-80" />
+    
     <div className="dropdown dropdown-end">
-      <div tabIndex={0} role="button" className="btn btn-ghost btn-circle avatar">
+      <div tabIndex={0} role="button" className="btn btn-ghost btn-circle avatar my-auto">
         <div className="w-10 rounded-full">
           <img
             alt="Tailwind CSS Navbar component"

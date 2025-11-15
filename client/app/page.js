@@ -37,7 +37,7 @@ export default function Home() {
         <div className="absolute inset-0 pointer-events-none overflow-x-auto">
           <img src="/offsetBlobs.svg" className="h-full w-full object-cover object-right" />
         </div>
-        <div className="hero-content text-center">
+        <div className="hero-content text-center bg-background">
           <div className="max-w-xl md:max-w-lg sm:max-w-md flex flex-col gap-6">
             <div>
               <h1 className={`text-6xl ${oswald.variable} text-primary-text font-bold break-keep`}>Discover. Collect. </h1>
@@ -279,7 +279,7 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="w-full bg-primary-text text-white py-12 px-4">
+      <footer className="w-full bg-black/70 text-white py-12 px-4">
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 mb-8">
             {/* Brand */}

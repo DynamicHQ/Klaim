@@ -1,26 +1,16 @@
 @import "tailwindcss";
-@plugin "daisyui";
+@plugin "daisyui" {
+  themes: light --default, dark --prefersdark;
+};
 
 :root {
-  --main: #845efc;
-  --primary-text: #121212;
-  --secondary-text: #555555;
-  --background: #f0f0f0;
-  --card: #ffffff;
+  --main: rgba(132, 94, 194, 1);
 }
 
 @theme light {
   --color-main: var(--main);
-  --color-primary-text: var(--);
-  --secondary-text: #555555;
-  --background: #f0f0f0;
-  --card: #ffffff;
 }
 
 @theme dark {
-  --main: #845efc;
-  --primary-text: #f0f0f0;
-  --secondary-text: #aaaaaa;
-  --background: #121212;
-  --card: #1e1e1e;
+  --color-main: var(--main);
 }

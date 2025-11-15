@@ -72,7 +72,7 @@ export default function FAQs() {
         
         <div className="space-y-6">
           {faq.map((item, index) => (
-            <div key={index} className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+            <div key={index} className="bg-black/5 rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
               <h3 className={`${oswald.variable} text-xl font-semibold text-primary-text mb-3`}>{item.question}</h3>
               <p className={`${inter.variable} text-secondary-text leading-relaxed`}>{item.answer}</p>
             </div>
