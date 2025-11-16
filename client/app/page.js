@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { Inter, Oswald } from "next/font/google";
 import { FaWallet, FaCheck } from 'react-icons/fa';
 import { connectWallet, getConnectedWallet, initializeStorage } from '@/utils/mockData';
@@ -35,7 +36,7 @@ export default function Home() {
       <div className="hero min-h-screen bg-main/5 relative overflow-hidden">
         {/* Background Blobs */}
         <div className="absolute inset-0 pointer-events-none overflow-x-auto">
-          <img src="/offsetBlobs.svg" className="h-full w-full object-cover object-right" />
+          <Image src="/offsetBlobs.svg" alt="Background decoration" fill className="object-cover object-right" />
         </div>
         <div className="hero-content text-center bg-background">
           <div className="max-w-xl md:max-w-lg sm:max-w-md flex flex-col gap-6">
@@ -152,11 +153,12 @@ export default function Home() {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
           {/* Creator Card 1 */}
           <div className="card bg-white shadow-md rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
-            <div className="aspect-square overflow-hidden bg-gray-200">
-              <img 
+            <div className="aspect-square overflow-hidden bg-gray-200 relative">
+              <Image 
                 src="https://picsum.photos/300/300?random=1" 
                 alt="Creator 1"
-                className="w-full h-full object-cover"
+                fill
+                className="object-cover"
               />
             </div>
             <div className="p-6 flex flex-col gap-4">
@@ -174,11 +176,12 @@ export default function Home() {
 
           {/* Creator Card 2 */}
           <div className="card bg-white shadow-md rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
-            <div className="aspect-square overflow-hidden bg-gray-200">
-              <img 
+            <div className="aspect-square overflow-hidden bg-gray-200 relative">
+              <Image 
                 src="https://picsum.photos/300/300?random=2" 
                 alt="Creator 2"
-                className="w-full h-full object-cover"
+                fill
+                className="object-cover"
               />
             </div>
             <div className="p-6 flex flex-col gap-4">
@@ -196,11 +199,12 @@ export default function Home() {
 
           {/* Creator Card 3 */}
           <div className="card bg-white shadow-md rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
-            <div className="aspect-square overflow-hidden bg-gray-200">
-              <img 
+            <div className="aspect-square overflow-hidden bg-gray-200 relative">
+              <Image 
                 src="https://picsum.photos/300/300?random=3" 
                 alt="Creator 3"
-                className="w-full h-full object-cover"
+                fill
+                className="object-cover"
               />
             </div>
             <div className="p-6 flex flex-col gap-4">
