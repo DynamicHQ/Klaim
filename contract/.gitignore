@@ -36,3 +36,9 @@ lcov.info
 
 # forge lib folder
 lib/
+
+text-interfaces/
+
+ContractAnalysis.md
+
+MarketplaceLicense.md
