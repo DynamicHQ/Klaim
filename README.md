@@ -32,7 +32,18 @@ A decentralized application built on Story Protocol that enables users to create
 
 ## Quick Start
 
-See [QUICKSTART.md](QUICKSTART.md) for a 5-minute setup guide.
+### 🚀 New to Testnet? Start Here!
+
+**[QUICK_TESTNET_GUIDE.md](QUICK_TESTNET_GUIDE.md)** - Get testnet tokens in 5 minutes!
+
+⚠️ **Important**: This application uses **Story Protocol Testnet**. You'll need testnet tokens to interact with the blockchain.
+
+**Testnet Resources:**
+- 🚀 [Quick Testnet Guide](QUICK_TESTNET_GUIDE.md) - Fast setup (5 min)
+- 📖 [Detailed Testnet Setup](TESTNET_SETUP.md) - Complete guide with troubleshooting
+- 🏃 [Quickstart Guide](QUICKSTART.md) - Application setup
+
+### Setup Steps
 
 ```bash
 # Install dependencies

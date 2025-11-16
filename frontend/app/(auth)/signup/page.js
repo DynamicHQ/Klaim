@@ -1,49 +1,62 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { FaWallet, FaUser } from 'react-icons/fa';
-import { connectWallet, getConnectedWallet, initializeStorage } from '@/utils/mockData';
+import { useAuth } from '@/contexts/AuthContext';
+import { isMetaMaskInstalled } from '@/utils/wallet';
 
 export default function Signup() {
   const router = useRouter();
-  const [wallet, setWallet] = useState(null);
+  const { wallet, connectWallet, signup } = useAuth();
   const [username, setUsername] = useState('');
   const [isConnecting, setIsConnecting] = useState(false);
-
-  useEffect(() => {
-    initializeStorage();
-    setWallet(getConnectedWallet());
-  }, []);
+  const [isSigningUp, setIsSigningUp] = useState(false);
+  const [error, setError] = useState(null);
 
   const handleConnectWallet = async () => {
     setIsConnecting(true);
+    setError(null);
+    
     try {
-      const newWallet = connectWallet();
-      setWallet(newWallet);
+      if (!isMetaMaskInstalled()) {
+        throw new Error('MetaMask is not installed. Please install MetaMask to continue.');
+      }
       
-      // Simulate API call to create user
-      setTimeout(() => {
-        alert('Account created successfully!');
-        router.push('/');
-      }, 1000);
+      await connectWallet();
     } catch (error) {
-      alert('Failed to connect wallet');
+      console.error('Wallet connection error:', error);
+      setError(error.message || 'Failed to connect wallet');
     } finally {
       setIsConnecting(false);
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    
     if (!wallet) {
-      alert('Please connect your wallet first');
+      setError('Please connect your wallet first');
       return;
     }
     
-    // Simulate account creation
-    alert('Account created successfully!');
-    router.push('/');
+    if (!username.trim()) {
+      setError('Please enter a username');
+      return;
+    }
+    
+    setIsSigningUp(true);
+    setError(null);
+    
+    try {
+      await signup(username);
+      router.push('/');
+    } catch (error) {
+      console.error('Signup error:', error);
+      setError(error.message || 'Failed to create account');
+    } finally {
+      setIsSigningUp(false);
+    }
   };
 
   return (
@@ -52,6 +65,15 @@ export default function Signup() {
         <div className="card bg-base-100 shadow-xl w-full max-w-md">
           <div className="card-body">
             <h1 className="text-3xl font-bold text-center mb-6">Sign Up</h1>
+            
+            {error && (
+              <div className="alert alert-error mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>{error}</span>
+              </div>
+            )}
             
             <form className="space-y-4" onSubmit={handleSubmit}>
               <div className="form-control">
@@ -67,6 +89,7 @@ export default function Signup() {
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     required
+                    disabled={isSigningUp}
                   />
                 </div>
               </div>
@@ -87,7 +110,7 @@ export default function Signup() {
                     className={`btn btn-outline w-full ${isConnecting ? 'loading' : ''}`}
                     disabled={isConnecting}
                   >
-                    <FaWallet className="w-4 h-4 mr-2" />
+                    {!isConnecting && <FaWallet className="w-4 h-4 mr-2" />}
                     {isConnecting ? 'Connecting...' : 'Connect Wallet'}
                   </button>
                 )}
@@ -95,10 +118,10 @@ export default function Signup() {
 
               <button 
                 type="submit"
-                className="btn btn-primary w-full"
-                disabled={!wallet || !username.trim()}
+                className={`btn btn-primary w-full ${isSigningUp ? 'loading' : ''}`}
+                disabled={!wallet || !username.trim() || isSigningUp}
               >
-                Create Account
+                {isSigningUp ? 'Creating Account...' : 'Create Account'}
               </button>
             </form>
 
