@@ -179,6 +179,11 @@ export class AssetsService {
 
     await asset.save();
 
+    // TODO: Trigger on-chain listing
+    // const minterPrivateKey = this.configService.get<string>('MINTER_PRIVATE_KEY');
+    // await this.web3Service.listIPOnChain(asset.tokenId, asset.price, minterPrivateKey);
+    // The listingId above will be replaced by the event listener when the on-chain event is caught.
+
     return {
       success: true,
       listingId,
@@ -237,5 +242,20 @@ export class AssetsService {
       throw new NotFoundException('Asset not found');
     }
     return asset;
+  }
+
+  // Find asset by metadataURI
+  async findByMetadataURI(metadataURI: string): Promise<AssetDocument> {
+    return this.assetModel.findOne({ metadataURI }).exec();
+  }
+
+  // Find asset by listingId
+  async findByListingId(listingId: string): Promise<AssetDocument> {
+    return this.assetModel.findOne({ listingId }).exec();
+  }
+
+  // Find asset by tokenId
+  async findByTokenId(tokenId: number): Promise<AssetDocument> {
+    return this.assetModel.findOne({ tokenId }).exec();
   }
 }
