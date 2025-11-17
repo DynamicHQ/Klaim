@@ -1,7 +1,6 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ethers } from 'ethers';
-import axios from 'axios';
 
 @Injectable()
 export class Web3Service implements OnModuleInit {
@@ -220,16 +219,5 @@ export class Web3Service implements OnModuleInit {
   // Get provider
   getProvider(): ethers.JsonRpcProvider {
     return this.provider;
-  }
-
-  // Fetch metadata from IPFS URI
-  async fetchMetadataFromURI(metadataURI: string): Promise<any> {
-    try {
-      const response = await axios.get(metadataURI);
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching metadata from IPFS:', error);
-      throw new Error('Could not fetch metadata from IPFS URI');
-    }
   }
 }

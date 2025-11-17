@@ -1,18 +1,22 @@
 import { ConflictException, Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
+import axios from 'axios';
+import { ConfigService } from '@nestjs/config';
 import { Asset, AssetDocument } from './schemas/asset.schema';
 import { CreateNftDto } from './dto/create-nft.dto';
 import { CreateIpDto } from './dto/create-ip.dto';
 import { ListMarketplaceDto } from './dto/list-marketplace.dto';
 import { PurchaseIpDto } from './dto/purchase-ip.dto';
 import { Web3Service } from '../web3/web3.service';
+import { AssetMetadata } from './interfaces/asset-metadata.interface';
 
 @Injectable()
 export class AssetsService {
   constructor(
     @InjectModel(Asset.name) private assetModel: Model<AssetDocument>,
     private readonly web3Service: Web3Service,
+    private readonly configService: ConfigService,
   ) {}
 
   // Create NFT with metadata
@@ -59,6 +63,12 @@ export class AssetsService {
         asset.createdat = createIpDto.createdat;
         
         await asset.save();
+
+        // Now that the asset is complete, create and upload the final metadata to IPFS.
+        // This is an asynchronous operation, can be awaited or run in the background.
+        this._uploadMetadataToIpfs(asset).catch(err => {
+          console.error(`Failed to upload metadata for asset ${asset._id}:`, err);
+        });
       } else {
         // Create new asset with IP info only
         asset = new this.assetModel({
@@ -82,6 +92,52 @@ export class AssetsService {
     } catch (error) {
       throw new BadRequestException('Could not create IP metadata.', { cause: error });
     }
+  }
+
+  /**
+   * Constructs the specific metadata JSON for an asset and uploads it to IPFS via Pinata.
+   * This is a private method triggered after an asset is fully formed.
+   * @param {AssetDocument} asset The complete asset document from the database.
+   * @private
+   */
+  private async _uploadMetadataToIpfs(asset: AssetDocument): Promise<void> {
+    const pinataApiKey = this.configService.get<string>('PINATA_API_KEY');
+    const pinataApiSecret = this.configService.get<string>('PINATA_API_SECRET');
+
+    if (!pinataApiKey || !pinataApiSecret) {
+      console.warn('Pinata API keys not found. Skipping metadata upload.');
+      return;
+    }
+
+    // 1. Construct the final metadata JSON object from the asset data.
+    const metadata: AssetMetadata = {
+      nft_info: {
+        name: asset.name,
+        description: asset.description,
+        image_url: asset.image_url,
+      },
+      ip_info: {
+        title: asset.title,
+        description: asset.description,
+        creator: asset.creators, // The wallet address
+        createdat: asset.createdat,
+      },
+    };
+
+    // 2. Upload the JSON to Pinata.
+    const response = await axios.post('https://api.pinata.cloud/pinning/pinJSONToIPFS', metadata, {
+      headers: {
+        'pinata_api_key': pinataApiKey,
+        'pinata_secret_api_key': pinataApiSecret,
+      },
+    });
+
+    const ipfsHash = response.data.IpfsHash;
+    const metadataURI = `https://gateway.pinata.cloud/ipfs/${ipfsHash}`;
+
+    // 3. (Optional but recommended) Save the metadata URI back to the asset.
+    asset.metadataURI = metadataURI;
+    await asset.save();
   }
 
   // Update asset with blockchain data
