@@ -4,8 +4,8 @@ A decentralized application built on Story Protocol that enables users to create
 
 ## Features
 
-- 🎨 **Create IP Assets**: Upload files to Cloudinary and register them as NFTs with IP protection
-- 🏪 **Marketplace**: Browse and purchase IP assets using IPT tokens
+- 🎨 **Create IP Assets**: Upload files to IPFS via Pinata and register them as NFTs with IP protection
+- � **Marketplace**: Browse and purchase IP assets using IPT tokens
 - 💼 **My IPs**: Manage your owned IP assets
 - 🔗 **Blockchain Integration**: Built on Story Protocol for IP rights management
 - 💰 **Token Payments**: Purchase IPs using IPT (IP Token) via MetaMask
@@ -17,7 +17,7 @@ A decentralized application built on Story Protocol that enables users to create
 - **Next.js 15** - React framework
 - **TailwindCSS + DaisyUI** - Styling
 - **ethers.js** - Blockchain interaction
-- **Cloudinary** - File storage
+- **Pinata** - IPFS File storage
 
 ### Backend
 - **NestJS** - Node.js framework
@@ -107,7 +107,7 @@ Visit http://localhost:3000
 1. Connect MetaMask wallet
 2. Upload file (image/dataset)
 3. Enter title and description
-4. Submit → File uploaded to Cloudinary
+4. Submit → File uploaded to Pinata (IPFS)
 5. NFT + IP metadata created
 6. Asset appears in "My IPs"
 
@@ -171,8 +171,7 @@ ERC20 token for marketplace payments.
 ### Frontend (.env.local)
 ```env
 NEXT_PUBLIC_API_ENDPOINT=http://localhost:3001
-NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=your_cloud_name
-NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET=your_preset
+NEXT_PUBLIC_PINATA_JWT=your_pinata_jwt_here
 NEXT_PUBLIC_IP_CREATOR_ADDRESS=0x...
 NEXT_PUBLIC_IP_MARKETPLACE_ADDRESS=0x...
 NEXT_PUBLIC_IP_TOKEN_ADDRESS=0x...
@@ -219,7 +218,7 @@ See [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) for detailed instructions.
 ## Current Status
 
 ### ✅ Implemented
-- File upload to Cloudinary
+- File upload to Pinata (IPFS)
 - NFT/IP metadata creation
 - Marketplace listing and browsing
 - Purchase flow (database level)
@@ -256,7 +255,7 @@ This project is licensed under the MIT License.
 
 - [Story Protocol](https://www.story.foundation/) - IP rights infrastructure
 - [OpenZeppelin](https://openzeppelin.com/) - Smart contract standards
-- [Cloudinary](https://cloudinary.com/) - Media management
+- [Pinata](https://pinata.cloud/) - IPFS pinning service
 
 ---
 
