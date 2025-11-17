@@ -1,16 +1,18 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { Asset } from './schema/asset.schema';
+import { Asset, AssetDocument } from './schemas/asset.schema';
 import { CreateNftDto } from './dto/create-nft.dto';
 import { CreateIpDto } from './dto/create-ip.dto';
 import { ListMarketplaceDto } from './dto/list-marketplace.dto';
 import { PurchaseIpDto } from './dto/purchase-ip.dto';
+import { Web3Service } from '../web3/web3.service';
 
 @Injectable()
 export class AssetsService {
   constructor(
-    @InjectModel(Asset.name) private assetModel: Model<Asset>,
+    @InjectModel(Asset.name) private assetModel: Model<AssetDocument>,
+    private readonly web3Service: Web3Service,
   ) {}
 
   // Create NFT with metadata
@@ -30,12 +32,12 @@ export class AssetsService {
       const saved = await asset.save();
       return {
         success: true,
-        nftId: saved._id.toString(),
+        assetId: saved._id.toString(),
         transactionHash: null, // Will be updated when blockchain tx completes
         message: 'NFT metadata created successfully',
       };
     } catch (error) {
-      throw error;
+      throw new BadRequestException('Could not create NFT metadata.', { cause: error });
     }
   }
 
@@ -74,11 +76,11 @@ export class AssetsService {
 
       return {
         success: true,
-        ipId: asset._id.toString(),
+        assetId: asset._id.toString(),
         message: 'IP metadata created successfully',
       };
     } catch (error) {
-      throw error;
+      throw new BadRequestException('Could not create IP metadata.', { cause: error });
     }
   }
 
@@ -102,13 +104,7 @@ export class AssetsService {
 
   // List IP on marketplace
   async listOnMarketplace(listMarketplaceDto: ListMarketplaceDto): Promise<any> {
-    // Find asset by tokenId or ipId
-    const asset = await this.assetModel.findOne({
-      $or: [
-        { tokenId: listMarketplaceDto.tokenId },
-        { currentOwner: listMarketplaceDto.seller },
-      ],
-    });
+    const asset = await this.assetModel.findById(listMarketplaceDto.assetId).exec();
 
     if (!asset) {
       throw new NotFoundException('Asset not found');
@@ -164,27 +160,23 @@ export class AssetsService {
   // Get all marketplace listings
   async getMarketplaceListings(): Promise<Asset[]> {
     return this.assetModel
-      .find({ isListed: true })
-      .populate('creator', 'wallet profileName')
-      .exec();
+      .find({ isListed: true }).exec();
   }
 
   // Get user's IPs
   async getUserIps(walletAddress: string): Promise<Asset[]> {
     return this.assetModel
-      .find({ currentOwner: walletAddress })
-      .populate('creator', 'wallet profileName')
-      .exec();
+      .find({ currentOwner: walletAddress }).exec();
   }
 
   // Get all assets
   async findAll(): Promise<Asset[]> {
-    return this.assetModel.find().populate('creator', 'wallet profileName').exec();
+    return this.assetModel.find().exec();
   }
 
   // Get asset by ID
   async findById(id: string): Promise<Asset> {
-    const asset = await this.assetModel.findById(id).populate('creator', 'wallet profileName').exec();
+    const asset = await this.assetModel.findById(id).exec();
     if (!asset) {
       throw new NotFoundException('Asset not found');
     }
