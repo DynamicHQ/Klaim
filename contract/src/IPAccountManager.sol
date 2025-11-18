@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.26;
 
-import { IIPAccountRegistry } from "@storyprotocol/core/interfaces/registries/IIPAccountRegistry.sol";
+import { IIPAccountRegistry } from "@story-protocol/protocol-core/contracts/interfaces/registries/IIPAccountRegistry.sol";
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 
 /**

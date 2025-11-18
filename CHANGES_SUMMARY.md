@@ -74,13 +74,13 @@ New functions:
 - `purchaseIP()` - Purchase IP
 - `getMarketplaceListings()` - Fetch marketplace data
 - `getUserIPs()` - Fetch user's IPs
-- `uploadToCloudinary()` - Upload files to Cloudinary
+- `uploadToPinata()` - Upload files to IPFS via Pinata
 
 #### 2. Updated Story Protocol Service
 **File:** `client/utils/storyProtocol.js`
 
 Simplified to:
-- Upload files to Cloudinary (not IPFS)
+- Upload files to IPFS via Pinata
 - Create NFT with proper metadata structure
 - Link IP to NFT with correct fields
 
@@ -121,7 +121,7 @@ Removed:
 
 Kept:
 - Title, description, image upload
-- Cloudinary integration
+- Pinata integration
 - Wallet connection
 
 ### Configuration Files

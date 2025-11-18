@@ -1,16 +1,22 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { Asset } from './schema/asset.schema';
+import axios from 'axios';
+import { ConfigService } from '@nestjs/config';
+import { Asset, AssetDocument } from './schemas/asset.schema';
 import { CreateNftDto } from './dto/create-nft.dto';
 import { CreateIpDto } from './dto/create-ip.dto';
 import { ListMarketplaceDto } from './dto/list-marketplace.dto';
 import { PurchaseIpDto } from './dto/purchase-ip.dto';
+import { Web3Service } from '../web3/web3.service';
+import { AssetMetadata } from './interfaces/asset-metadata.interface';
 
 @Injectable()
 export class AssetsService {
   constructor(
-    @InjectModel(Asset.name) private assetModel: Model<Asset>,
+    @InjectModel(Asset.name) private assetModel: Model<AssetDocument>,
+    private readonly web3Service: Web3Service,
+    private readonly configService: ConfigService,
   ) {}
 
   // Create NFT with metadata
@@ -30,12 +36,12 @@ export class AssetsService {
       const saved = await asset.save();
       return {
         success: true,
-        nftId: saved._id.toString(),
+        assetId: saved._id.toString(),
         transactionHash: null, // Will be updated when blockchain tx completes
         message: 'NFT metadata created successfully',
       };
     } catch (error) {
-      throw error;
+      throw new BadRequestException('Could not create NFT metadata.', { cause: error });
     }
   }
 
@@ -57,6 +63,12 @@ export class AssetsService {
         asset.createdat = createIpDto.createdat;
         
         await asset.save();
+
+        // Now that the asset is complete, create and upload the final metadata to IPFS.
+        // This is an asynchronous operation, can be awaited or run in the background.
+        this._uploadMetadataToIpfs(asset).catch(err => {
+          console.error(`Failed to upload metadata for asset ${asset._id}:`, err);
+        });
       } else {
         // Create new asset with IP info only
         asset = new this.assetModel({
@@ -74,12 +86,58 @@ export class AssetsService {
 
       return {
         success: true,
-        ipId: asset._id.toString(),
+        assetId: asset._id.toString(),
         message: 'IP metadata created successfully',
       };
     } catch (error) {
-      throw error;
+      throw new BadRequestException('Could not create IP metadata.', { cause: error });
     }
+  }
+
+  /**
+   * Constructs the specific metadata JSON for an asset and uploads it to IPFS via Pinata.
+   * This is a private method triggered after an asset is fully formed.
+   * @param {AssetDocument} asset The complete asset document from the database.
+   * @private
+   */
+  private async _uploadMetadataToIpfs(asset: AssetDocument): Promise<void> {
+    const pinataApiKey = this.configService.get<string>('PINATA_API_KEY');
+    const pinataApiSecret = this.configService.get<string>('PINATA_API_SECRET');
+
+    if (!pinataApiKey || !pinataApiSecret) {
+      console.warn('Pinata API keys not found. Skipping metadata upload.');
+      return;
+    }
+
+    // 1. Construct the final metadata JSON object from the asset data.
+    const metadata: AssetMetadata = {
+      nft_info: {
+        name: asset.name,
+        description: asset.description,
+        image_url: asset.image_url,
+      },
+      ip_info: {
+        title: asset.title,
+        description: asset.description,
+        creator: asset.creators, // The wallet address
+        createdat: asset.createdat,
+      },
+    };
+
+    // 2. Upload the JSON to Pinata.
+    const response = await axios.post('https://api.pinata.cloud/pinning/pinJSONToIPFS', metadata, {
+      headers: {
+        'pinata_api_key': pinataApiKey,
+        'pinata_secret_api_key': pinataApiSecret,
+      },
+    });
+
+    const ipfsHash = response.data.IpfsHash;
+    const metadataURI = `https://gateway.pinata.cloud/ipfs/${ipfsHash}`;
+
+    // 3. (Optional but recommended) Save the metadata URI back to the asset.
+    asset.metadataURI = metadataURI;
+    await asset.save();
   }
 
   // Update asset with blockchain data
@@ -102,13 +160,7 @@ export class AssetsService {
 
   // List IP on marketplace
   async listOnMarketplace(listMarketplaceDto: ListMarketplaceDto): Promise<any> {
-    // Find asset by tokenId or ipId
-    const asset = await this.assetModel.findOne({
-      $or: [
-        { tokenId: listMarketplaceDto.tokenId },
-        { currentOwner: listMarketplaceDto.seller },
-      ],
-    });
+    const asset = await this.assetModel.findById(listMarketplaceDto.assetId).exec();
 
     if (!asset) {
       throw new NotFoundException('Asset not found');
@@ -126,6 +178,11 @@ export class AssetsService {
     asset.price = listMarketplaceDto.price;
 
     await asset.save();
+
+    // TODO: Trigger on-chain listing
+    // const minterPrivateKey = this.configService.get<string>('MINTER_PRIVATE_KEY');
+    // await this.web3Service.listIPOnChain(asset.tokenId, asset.price, minterPrivateKey);
+    // The listingId above will be replaced by the event listener when the on-chain event is caught.
 
     return {
       success: true,
@@ -164,30 +221,41 @@ export class AssetsService {
   // Get all marketplace listings
   async getMarketplaceListings(): Promise<Asset[]> {
     return this.assetModel
-      .find({ isListed: true })
-      .populate('creator', 'wallet profileName')
-      .exec();
+      .find({ isListed: true }).exec();
   }
 
   // Get user's IPs
   async getUserIps(walletAddress: string): Promise<Asset[]> {
     return this.assetModel
-      .find({ currentOwner: walletAddress })
-      .populate('creator', 'wallet profileName')
-      .exec();
+      .find({ currentOwner: walletAddress }).exec();
   }
 
   // Get all assets
   async findAll(): Promise<Asset[]> {
-    return this.assetModel.find().populate('creator', 'wallet profileName').exec();
+    return this.assetModel.find().exec();
   }
 
   // Get asset by ID
   async findById(id: string): Promise<Asset> {
-    const asset = await this.assetModel.findById(id).populate('creator', 'wallet profileName').exec();
+    const asset = await this.assetModel.findById(id).exec();
     if (!asset) {
       throw new NotFoundException('Asset not found');
     }
     return asset;
+  }
+
+  // Find asset by metadataURI
+  async findByMetadataURI(metadataURI: string): Promise<AssetDocument> {
+    return this.assetModel.findOne({ metadataURI }).exec();
+  }
+
+  // Find asset by listingId
+  async findByListingId(listingId: string): Promise<AssetDocument> {
+    return this.assetModel.findOne({ listingId }).exec();
+  }
+
+  // Find asset by tokenId
+  async findByTokenId(tokenId: number): Promise<AssetDocument> {
+    return this.assetModel.findOne({ tokenId }).exec();
   }
 }

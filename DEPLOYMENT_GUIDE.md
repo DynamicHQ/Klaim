@@ -83,7 +83,7 @@ cd contract
 npm install
 
 # Deploy to Story testnet
-npx hardhat run scripts/deploy.js --network story-testnet
+pnpm hardhat run scripts/deploy.js --network story-aeneid
 
 # Copy deployed contract addresses
 ```
@@ -124,7 +124,7 @@ IP_TOKEN_ADDRESS=0x...
 NEXT_PUBLIC_IP_CREATOR_ADDRESS=0x...
 NEXT_PUBLIC_IP_MARKETPLACE_ADDRESS=0x...
 NEXT_PUBLIC_IP_TOKEN_ADDRESS=0x...
-NEXT_PUBLIC_NFT_CONTRACT_ADDRESS=0x... (from IPCreator.getNFTContract())
+NEXT_PUBLIC_NFT_CONTRACT_ADDRESS=0x... (This is the address returned by IPCreator.getNFTContract())
 ```
 
 ## Step 8: Start the Application

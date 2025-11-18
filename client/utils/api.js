@@ -168,6 +168,40 @@ export async function signupUser(username, walletAddress) {
   return postJSON('/users/signup', { username, walletAddress });
 }
 
+/**
+ * A high-level function to create a complete asset.
+ * It uploads the image, then creates the NFT and IP records on the backend.
+ * @param {object} assetData - Contains title, description, and image file.
+ * @param {string} assetData.title - The title of the asset.
+ * @param {string} assetData.description - The description of the asset.
+ * @param {File} assetData.image - The image file for the asset.
+ * @param {string} walletAddress - The creator's wallet address.
+ * @returns {Promise<object>} The final response from the createIp call.
+ */
+export async function createAsset(assetData, walletAddress) {
+  // Step 1: Upload image to get the URL. We'll use the Pinata function directly.
+  // Note: In a larger app, this uploader could also be part of the api utility.
+  const { uploadToPinata } = await import('./pinata');
+  const imageUrl = await uploadToPinata(assetData.image);
+
+  // Step 2: Create the NFT metadata record.
+  const nftInfo = {
+    name: assetData.title,
+    description: assetData.description,
+    image_url: imageUrl,
+  };
+  const nftResponse = await createNFT(nftInfo, walletAddress);
+
+  // Step 3: Create the IP metadata record, linking it to the NFT.
+  const ipInfo = {
+    title: assetData.title,
+    description: assetData.description,
+    creators: walletAddress,
+    createdat: new Date().toISOString(),
+  };
+  return createIP(ipInfo, nftResponse.assetId);
+}
+
 // Legacy endpoints (kept for backward compatibility)
 export async function syncWallet(walletAddress) {
   return postJSON('/users/sync-wallet', { walletAddress });
@@ -177,13 +211,13 @@ export async function loginUser(username, walletAddress) {
   return postJSON('/users/login', { username, walletAddress });
 }
 
-export async function createNFT(nft_info, walletAddress) {
+export async function createNFT(nft_info, walletAddress) { // Renamed from createNft for consistency
   const body = { nft_info };
   if (walletAddress) body.walletAddress = walletAddress;
   return postJSON('/assets/nft', body);
 }
 
-export async function createIP(ip_info, nftId) {
+export async function createIP(ip_info, nftId) { // Renamed from createIp for consistency
   const body = { ip_info };
   if (nftId) body.nftId = nftId;
   return postJSON('/assets/ip', body);
@@ -258,12 +292,16 @@ export default {
   loginUser,
   // Asset endpoints
   createNFT,
+  createNft: createNFT, // alias for backward compatibility if needed
   createIP,
+  createIp: createIP, // alias for backward compatibility if needed
   listOnMarketplace,
   purchaseIP,
   getMarketplaceListings,
   getUserIPs,
   // Utility
   uploadToCloudinary,
-  readFileAsDataURL
+  readFileAsDataURL,
+  // High-level functions
+  createAsset
 };

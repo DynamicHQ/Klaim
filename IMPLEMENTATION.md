@@ -2,7 +2,7 @@
 
 ## Overview
 This is a decentralized application (dApp) built on Story Protocol that allows users to:
-- Upload datasets/files to Cloudinary
+- Upload datasets/files to IPFS via Pinata
 - Create NFTs and register them as IP Assets
 - List IPs on a marketplace
 - Purchase IPs with IPT tokens via MetaMask
