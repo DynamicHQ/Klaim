@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.26;
 
-import { ILicensingModule } from "@story-protocol/protocol-core/contracts/interfaces/modules/licensing/ILicensingModule.sol";
-import { ILicenseRegistry } from "@story-protocol/protocol-core/contracts/interfaces/registries/ILicenseRegistry.sol";
-import { IPILicenseTemplate } from "@story-protocol/protocol-core/contracts/interfaces/modules/licensing/IPILicenseTemplate.sol";
+import { ILicensingModule } from "@storyprotocol/core/contracts/interfaces/modules/licensing/ILicensingModule.sol";
+import { ILicenseRegistry } from "@storyprotocol/core/contracts/interfaces/registries/ILicenseRegistry.sol";
+import { IPILicenseTemplate } from "@storyprotocol/core/contracts/interfaces/modules/licensing/IPILicenseTemplate.sol";
 
 /**
  * @title LicenseAttacher

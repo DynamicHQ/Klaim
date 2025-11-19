@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.26;
 
-import { ILicensingModule } from "@story-protocol/protocol-core/contracts/interfaces/modules/licensing/ILicensingModule.sol";
-import { ILicenseRegistry } from "@story-protocol/protocol-core/contracts/interfaces/registries/ILicenseRegistry.sol";
-import { IIPAssetRegistry } from "@story-protocol/protocol-core/contracts/interfaces/registries/IIPAssetRegistry.sol";
+import { ILicensingModule } from "@storyprotocol/core/contracts/interfaces/modules/licensing/ILicensingModule.sol";
+import { ILicenseRegistry } from "@storyprotocol/core/contracts/interfaces/registries/ILicenseRegistry.sol";
+import { IIPAssetRegistry } from "@storyprotocol/core/contracts/interfaces/registries/IIPAssetRegistry.sol";
 
 /**
  * @title DerivativeManager
@@ -31,8 +31,10 @@ contract DerivativeManager {
     function registerDerivativeWithLicenseTokens(
         address childIpId,
         uint256[] calldata licenseTokenIds,
-        uint256 maxRts
+        uint32 maxRts
     ) external {
+        require(maxRts <= type(uint32).max, "maxRts too large");
+
         LICENSING_MODULE.registerDerivativeWithLicenseTokens({
             childIpId: childIpId,
             licenseTokenIds: licenseTokenIds,

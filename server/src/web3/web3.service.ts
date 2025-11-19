@@ -219,4 +219,26 @@ export class Web3Service implements OnModuleInit {
   getProvider(): ethers.JsonRpcProvider {
     return this.provider;
   }
+
+  /**
+   * @notice Mints IP tokens to a specified address using the deployer's private key.
+   * @param toAddress The address to mint tokens to.
+   * @param amount The amount of tokens to mint (human-readable, e.g., "100").
+   * @param privateKey The private key of the token owner/minter.
+   * @returns Transaction receipt.
+   */
+  async mintIPToken(
+    toAddress: string,
+    amount: string, // amount in human-readable format, e.g., "100"
+    privateKey: string,
+  ): Promise<any> {
+    if (!this.ipTokenContract) {
+      throw new Error('IPToken contract not initialized');
+    }
+    const wallet = new ethers.Wallet(privateKey, this.provider);
+    const contract = this.ipTokenContract.connect(wallet);
+    const amountInWei = ethers.parseEther(amount); // Assuming 18 decimals for IPToken
+    const tx = await contract.mint(toAddress, amountInWei);
+    return tx.wait();
+  }
 }

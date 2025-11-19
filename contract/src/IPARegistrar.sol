@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.26;
 
-import { IIPAssetRegistry } from "@story-protocol/protocol-core/contracts/interfaces/registries/IIPAssetRegistry.sol";
-import { IRegistrationWorkflows } from "@story-protocol/protocol-periphery/contracts/interfaces/workflows/IRegistrationWorkflows.sol";
-import { WorkflowStructs } from "@story-protocol/protocol-periphery/contracts/lib/WorkflowStructs.sol";
-import { ISPGNFT } from "@story-protocol/protocol-periphery/contracts/interfaces/ISPGNFT.sol";
+import { IIPAssetRegistry } from "@storyprotocol/core/contracts/interfaces/registries/IIPAssetRegistry.sol";
+import { IRegistrationWorkflows } from "@storyprotocol/periphery/contracts/interfaces/workflows/IRegistrationWorkflows.sol";
+import { WorkflowStructs } from "@storyprotocol/periphery/contracts/lib/WorkflowStructs.sol";
+import { ISPGNFT } from "@storyprotocol/periphery/contracts/interfaces/ISPGNFT.sol";
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 
 /**
