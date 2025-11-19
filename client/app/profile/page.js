@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { FaSpinner, FaWallet, FaUpload, FaDownload } from 'react-icons/fa';
 import { getMyNFTs, listNFTOnMarketplace, getConnectedWallet, initializeStorage } from '@/utils/mockData';
 
@@ -112,11 +113,12 @@ export default function Profile() {
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {myNFTs.map((nft) => (
               <div key={nft.id} className="card bg-base-100 shadow-xl">
-                <figure className="relative">
-                  <img
+                <figure className="relative h-48">
+                  <Image
                     src={nft.image_url || 'https://via.placeholder.com/400x300/374151/9CA3AF?text=No+Image'}
                     alt={nft.name}
-                    className="w-full h-48 object-cover"
+                    fill
+                    className="object-cover"
                   />
                 </figure>
                 

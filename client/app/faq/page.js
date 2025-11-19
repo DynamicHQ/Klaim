@@ -268,7 +268,7 @@ export default function FAQ() {
               Still Have Questions?
             </h2>
             <p className="mb-4">
-              Can't find what you're looking for? Check out our technical documentation or join our community.
+              Can&apos;t find what you&apos;re looking for? Check out our technical documentation or join our community.
             </p>
             <div className="flex flex-wrap gap-3 justify-center">
               <a href="/docs" className="btn btn-outline btn-primary-content">

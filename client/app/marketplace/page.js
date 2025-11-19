@@ -115,12 +115,12 @@ export default function Marketplace() {
                   className="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 cursor-pointer transform hover:-translate-y-1"
                   onClick={() => handleProductClick(product)}
                 >
-                  <figure className="relative overflow-hidden">
-                    <img
+                  <figure className="relative overflow-hidden h-64">
+                    <Image
                       src={product.image_url}
                       alt={product.name}
-                      className="w-full h-auto object-cover transition-transform duration-300 hover:scale-105"
-                      loading="lazy"
+                      fill
+                      className="object-cover transition-transform duration-300 hover:scale-105"
                     />
                     <div className="absolute top-2 right-2">
                       <div className="badge badge-primary badge-lg font-bold">
@@ -167,11 +167,14 @@ export default function Marketplace() {
           <div className="modal modal-open">
             <div className="modal-box max-w-2xl">
               <h3 className="font-bold text-2xl mb-4">{selectedProduct.name}</h3>
-              <img
-                src={selectedProduct.image_url}
-                alt={selectedProduct.name}
-                className="w-full rounded-lg mb-4"
-              />
+              <div className="relative w-full h-96 mb-4">
+                <Image
+                  src={selectedProduct.image_url}
+                  alt={selectedProduct.name}
+                  fill
+                  className="rounded-lg object-cover"
+                />
+              </div>
               <p className="mb-4">{selectedProduct.description}</p>
               <p className="mb-2"><strong>Created by:</strong> {selectedProduct.creator}</p>
               <p className="mb-4"><strong>Price:</strong> {selectedProduct.price} IPT</p>

@@ -57,7 +57,7 @@ export default function Navbar() {
             </a>
           </div>
         ) : (
-          <div className="badge badge-success">
+          <div className="badge badge-success py-4">
             {wallet?.slice(0, 6)}...{wallet?.slice(-4)}
           </div>
         )}

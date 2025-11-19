@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { FaUpload, FaSpinner, FaCheck, FaWallet } from 'react-icons/fa';
 import { createNFT, uploadImageToBase64, getConnectedWallet, initializeStorage } from '@/utils/mockData';
 
@@ -223,11 +224,12 @@ export default function CreateNFT() {
                     </label>
                     <div className="flex flex-col items-center">
                       {imagePreview ? (
-                        <div className="relative mb-4">
-                          <img
+                        <div className="relative mb-4 w-48 h-48">
+                          <Image
                             src={imagePreview}
                             alt="Preview"
-                            className="w-48 h-48 object-cover rounded-lg border-2 border-base-300"
+                            fill
+                            className="object-cover rounded-lg border-2 border-base-300"
                           />
                           <button
                             type="button"

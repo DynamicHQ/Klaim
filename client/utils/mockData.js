@@ -7,60 +7,186 @@ const STORAGE_KEYS = {
   ALL_NFTS: 'all_nfts'
 };
 
-// Initialize with some sample marketplace items
+// Initialize with 20 uniform sample marketplace items
 const INITIAL_MARKETPLACE = [
   {
     id: '1',
-    name: "Digital Art Masterpiece",
-    description: "A stunning digital artwork featuring abstract patterns and vibrant colors.",
+    name: "Digital Art Collection #1",
+    description: "A stunning digital artwork featuring abstract patterns and vibrant colors. Perfect for collectors.",
     price: 0.5,
-    image_url: "https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=400&h=600&fit=crop",
+    image_url: "https://picsum.photos/seed/art1/400/400",
     creator: "0x1234...5678",
     createdAt: new Date().toISOString()
   },
   {
     id: '2',
-    name: "Cyberpunk Portrait",
-    description: "Futuristic portrait with neon lighting and cyberpunk aesthetics.",
-    price: 1.2,
-    image_url: "https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=400&h=500&fit=crop",
+    name: "Digital Art Collection #2",
+    description: "A stunning digital artwork featuring abstract patterns and vibrant colors. Perfect for collectors.",
+    price: 0.5,
+    image_url: "https://picsum.photos/seed/art2/400/400",
     creator: "0xabcd...efgh",
     createdAt: new Date().toISOString()
   },
   {
     id: '3',
-    name: "Abstract Geometry",
-    description: "Mathematical beauty expressed through geometric forms and color theory.",
-    price: 0.8,
-    image_url: "https://images.unsplash.com/photo-1557804506-669a67965ba0?w=400&h=700&fit=crop",
+    name: "Digital Art Collection #3",
+    description: "A stunning digital artwork featuring abstract patterns and vibrant colors. Perfect for collectors.",
+    price: 0.5,
+    image_url: "https://picsum.photos/seed/art3/400/400",
     creator: "0x9876...5432",
     createdAt: new Date().toISOString()
   },
   {
     id: '4',
-    name: "Nature's Symphony",
-    description: "Digital interpretation of natural landscapes with ethereal lighting.",
-    price: 2.1,
-    image_url: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=550&fit=crop",
+    name: "Digital Art Collection #4",
+    description: "A stunning digital artwork featuring abstract patterns and vibrant colors. Perfect for collectors.",
+    price: 0.5,
+    image_url: "https://picsum.photos/seed/art4/400/400",
     creator: "0xfedc...ba98",
     createdAt: new Date().toISOString()
   },
   {
     id: '5',
-    name: "Urban Dreams",
-    description: "City skylines reimagined through artistic vision.",
-    price: 1.5,
-    image_url: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=400&h=600&fit=crop",
+    name: "Digital Art Collection #5",
+    description: "A stunning digital artwork featuring abstract patterns and vibrant colors. Perfect for collectors.",
+    price: 0.5,
+    image_url: "https://picsum.photos/seed/art5/400/400",
     creator: "0x1111...2222",
     createdAt: new Date().toISOString()
   },
   {
     id: '6',
-    name: "Cosmic Journey",
-    description: "Space exploration themes with nebulas and stellar formations.",
-    price: 3.0,
-    image_url: "https://images.unsplash.com/photo-1446776877081-d282a0f896e2?w=400&h=650&fit=crop",
+    name: "Digital Art Collection #6",
+    description: "A stunning digital artwork featuring abstract patterns and vibrant colors. Perfect for collectors.",
+    price: 0.5,
+    image_url: "https://picsum.photos/seed/art6/400/400",
     creator: "0x3333...4444",
+    createdAt: new Date().toISOString()
+  },
+  {
+    id: '7',
+    name: "Digital Art Collection #7",
+    description: "A stunning digital artwork featuring abstract patterns and vibrant colors. Perfect for collectors.",
+    price: 0.5,
+    image_url: "https://picsum.photos/seed/art7/400/400",
+    creator: "0x5555...6666",
+    createdAt: new Date().toISOString()
+  },
+  {
+    id: '8',
+    name: "Digital Art Collection #8",
+    description: "A stunning digital artwork featuring abstract patterns and vibrant colors. Perfect for collectors.",
+    price: 0.5,
+    image_url: "https://picsum.photos/seed/art8/400/400",
+    creator: "0x7777...8888",
+    createdAt: new Date().toISOString()
+  },
+  {
+    id: '9',
+    name: "Digital Art Collection #9",
+    description: "A stunning digital artwork featuring abstract patterns and vibrant colors. Perfect for collectors.",
+    price: 0.5,
+    image_url: "https://picsum.photos/seed/art9/400/400",
+    creator: "0x9999...aaaa",
+    createdAt: new Date().toISOString()
+  },
+  {
+    id: '10',
+    name: "Digital Art Collection #10",
+    description: "A stunning digital artwork featuring abstract patterns and vibrant colors. Perfect for collectors.",
+    price: 0.5,
+    image_url: "https://picsum.photos/seed/art10/400/400",
+    creator: "0xbbbb...cccc",
+    createdAt: new Date().toISOString()
+  },
+  {
+    id: '11',
+    name: "Digital Art Collection #11",
+    description: "A stunning digital artwork featuring abstract patterns and vibrant colors. Perfect for collectors.",
+    price: 0.5,
+    image_url: "https://picsum.photos/seed/art11/400/400",
+    creator: "0xdddd...eeee",
+    createdAt: new Date().toISOString()
+  },
+  {
+    id: '12',
+    name: "Digital Art Collection #12",
+    description: "A stunning digital artwork featuring abstract patterns and vibrant colors. Perfect for collectors.",
+    price: 0.5,
+    image_url: "https://picsum.photos/seed/art12/400/400",
+    creator: "0xffff...0000",
+    createdAt: new Date().toISOString()
+  },
+  {
+    id: '13',
+    name: "Digital Art Collection #13",
+    description: "A stunning digital artwork featuring abstract patterns and vibrant colors. Perfect for collectors.",
+    price: 0.5,
+    image_url: "https://picsum.photos/seed/art13/400/400",
+    creator: "0x1a2b...3c4d",
+    createdAt: new Date().toISOString()
+  },
+  {
+    id: '14',
+    name: "Digital Art Collection #14",
+    description: "A stunning digital artwork featuring abstract patterns and vibrant colors. Perfect for collectors.",
+    price: 0.5,
+    image_url: "https://picsum.photos/seed/art14/400/400",
+    creator: "0x5e6f...7g8h",
+    createdAt: new Date().toISOString()
+  },
+  {
+    id: '15',
+    name: "Digital Art Collection #15",
+    description: "A stunning digital artwork featuring abstract patterns and vibrant colors. Perfect for collectors.",
+    price: 0.5,
+    image_url: "https://picsum.photos/seed/art15/400/400",
+    creator: "0x9i0j...1k2l",
+    createdAt: new Date().toISOString()
+  },
+  {
+    id: '16',
+    name: "Digital Art Collection #16",
+    description: "A stunning digital artwork featuring abstract patterns and vibrant colors. Perfect for collectors.",
+    price: 0.5,
+    image_url: "https://picsum.photos/seed/art16/400/400",
+    creator: "0x3m4n...5o6p",
+    createdAt: new Date().toISOString()
+  },
+  {
+    id: '17',
+    name: "Digital Art Collection #17",
+    description: "A stunning digital artwork featuring abstract patterns and vibrant colors. Perfect for collectors.",
+    price: 0.5,
+    image_url: "https://picsum.photos/seed/art17/400/400",
+    creator: "0x7q8r...9s0t",
+    createdAt: new Date().toISOString()
+  },
+  {
+    id: '18',
+    name: "Digital Art Collection #18",
+    description: "A stunning digital artwork featuring abstract patterns and vibrant colors. Perfect for collectors.",
+    price: 0.5,
+    image_url: "https://picsum.photos/seed/art18/400/400",
+    creator: "0x1u2v...3w4x",
+    createdAt: new Date().toISOString()
+  },
+  {
+    id: '19',
+    name: "Digital Art Collection #19",
+    description: "A stunning digital artwork featuring abstract patterns and vibrant colors. Perfect for collectors.",
+    price: 0.5,
+    image_url: "https://picsum.photos/seed/art19/400/400",
+    creator: "0x5y6z...7a8b",
+    createdAt: new Date().toISOString()
+  },
+  {
+    id: '20',
+    name: "Digital Art Collection #20",
+    description: "A stunning digital artwork featuring abstract patterns and vibrant colors. Perfect for collectors.",
+    price: 0.5,
+    image_url: "https://picsum.photos/seed/art20/400/400",
+    creator: "0x9c0d...1e2f",
     createdAt: new Date().toISOString()
   }
 ];
@@ -84,7 +210,7 @@ export const initializeStorage = () => {
 
 // Wallet functions
 export const connectWallet = () => {
-  const mockWallet = '0x' + Math.random().toString(16).substr(2, 40);
+  const mockWallet = '0x' + Math.random().toString(16).substring(2, 42);
   localStorage.setItem(STORAGE_KEYS.WALLET, mockWallet);
   return mockWallet;
 }; 

@@ -1,8 +1,25 @@
 'use client';
+import { useState } from 'react';
 import { FaWallet } from 'react-icons/fa';
 
 export default function Signup() {
-    const { connectWallet, isConnecting } = useWallet();
+    const [isConnecting, setIsConnecting] = useState(false);
+
+    const handleConnectWallet = async () => {
+        setIsConnecting(true);
+        try {
+            if (typeof window !== 'undefined' && window.ethereum) {
+                await window.ethereum.request({ method: 'eth_requestAccounts' });
+                alert('Wallet connected! (Mock mode)');
+            } else {
+                alert('Please install MetaMask');
+            }
+        } catch (error) {
+            console.error('Error connecting wallet:', error);
+        } finally {
+            setIsConnecting(false);
+        }
+    };
 
     return (
         <div className="flex flex-col items-center justify-center min-h-screen py-2 gap-6">
@@ -10,7 +27,7 @@ export default function Signup() {
             <form className="flex flex-col gap-4 w-80" onSubmit={(e) => e.preventDefault()}>
                 <input type="text" placeholder="Username" className="input input-bordered" />
                 <button
-                    onClick={connectWallet}
+                    onClick={handleConnectWallet}
                     type="button"
                     className={`btn btn-outline btn-sm ${isConnecting ? 'loading' : ''}`}
                     disabled={isConnecting}
@@ -19,7 +36,10 @@ export default function Signup() {
                     {isConnecting ? 'Connecting...' : 'Connect'}
                 </button>
             </form>
-            <div className="text-secondary-text font-300">Already have an account?<a href="/login" className="text-main font-bold">Login</a></div>
+            <div className="text-secondary-text font-300">
+                Already have an account?
+                <a href="/login" className="text-main font-bold"> Login</a>
+            </div>
         </div>
     );
 }

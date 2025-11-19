@@ -12,7 +12,7 @@ export default function Docs() {
             Technical Documentation
           </h1>
           <p className="text-lg text-base-content/70 max-w-3xl mx-auto">
-            Comprehensive technical overview of Klaimit's architecture, protocols, and implementation
+            Comprehensive technical overview of Klaimit&apos;s architecture, protocols, and implementation
           </p>
         </div>
 
@@ -120,7 +120,7 @@ export default function Docs() {
                 <pre data-prefix="1"><code>User connects MetaMask wallet</code></pre>
                 <pre data-prefix="2"><code>Frontend requests nonce: GET /auth/nonce/:wallet</code></pre>
                 <pre data-prefix="3"><code>Backend generates unique nonce, stores in DB</code></pre>
-                <pre data-prefix="4"><code>User signs message: "Welcome to Klaimit! Sign this nonce to login: {'{nonce}'}"</code></pre>
+                <pre data-prefix="4"><code>User signs message: &quot;Welcome to Klaimit! Sign this nonce to login: {'{nonce}'}&quot;</code></pre>
                 <pre data-prefix="5"><code>Frontend sends signature: POST /auth/login</code></pre>
                 <pre data-prefix="6"><code>Backend verifies signature using ethers.verifyMessage()</code></pre>
                 <pre data-prefix="7"><code>Backend generates JWT token with user ID and wallet</code></pre>
@@ -262,7 +262,7 @@ export default function Docs() {
                   <tr>
                     <td><span className="badge badge-info">GET</span></td>
                     <td><code>/assets/user/:wallet</code></td>
-                    <td>Get user's assets</td>
+                    <td>Get user&apos;s assets</td>
                     <td>JWT</td>
                   </tr>
                 </tbody>

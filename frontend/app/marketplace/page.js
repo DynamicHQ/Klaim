@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { FaSearch, FaSpinner } from 'react-icons/fa';
+import { Image } from "next/image"
 import { getMarketplaceFromServer, purchaseNFT, getConnectedWallet, initializeStorage } from '@/utils/mockData';
 
 export default function Marketplace() {
@@ -118,7 +119,7 @@ export default function Marketplace() {
                   className="relative overflow-hidden h-48"
                   onClick={() => handleProductClick(product)}
                 >
-                  <img
+                  <Image
                     src={product.image_url}
                     alt={product.name}
                     className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
@@ -171,7 +172,7 @@ export default function Marketplace() {
           <div className="modal modal-open">
             <div className="modal-box max-w-2xl">
               <h3 className="font-bold text-2xl mb-4">{selectedProduct.name}</h3>
-              <img
+              <Image
                 src={selectedProduct.image_url}
                 alt={selectedProduct.name}
                 className="w-full rounded-lg mb-4 max-h-96 object-cover"
