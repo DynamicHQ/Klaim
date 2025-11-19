@@ -5,8 +5,9 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { FaSpinner, FaWallet, FaUpload, FaDownload } from 'react-icons/fa';
 import { getMyNFTs, listNFTOnMarketplace, getConnectedWallet, initializeStorage } from '@/utils/mockData';
+import AuthGate from '@/components/AuthGate';
 
-export default function Profile() {
+function Profile() {
   const router = useRouter();
   const [myNFTs, setMyNFTs] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -97,17 +98,18 @@ export default function Profile() {
   }
 
   return (
-    <div className="min-h-screen bg-base-200 pt-20">
-      <div className="container mx-auto px-4 py-8">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold mb-2">My NFTs</h1>
-          <p className="text-base-content/70">
-            Your NFT collection
-          </p>
-          <p className="text-sm text-base-content/50 mt-2">
-            Connected: {wallet?.slice(0, 6)}...{wallet?.slice(-4)}
-          </p>
-        </div>
+    <AuthGate>
+      <div className="min-h-screen bg-base-200 pt-20">
+        <div className="container mx-auto px-4 py-8">
+          <div className="text-center mb-8">
+            <h1 className="text-4xl font-bold mb-2">My NFTs</h1>
+            <p className="text-base-content/70">
+              Your NFT collection
+            </p>
+            <p className="text-sm text-base-content/50 mt-2">
+              Connected: {wallet?.slice(0, 6)}...{wallet?.slice(-4)}
+            </p>
+          </div>
 
         {myNFTs.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
@@ -220,5 +222,10 @@ export default function Profile() {
         )}
       </div>
     </div>
+    </AuthGate>
   );
+}
+
+export default function ProfilePage() {
+  return <Profile />;
 }

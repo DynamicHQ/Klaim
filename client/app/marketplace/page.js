@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { FaSearch, FaSpinner } from 'react-icons/fa';
 import { useAccount } from 'wagmi';
-import { getMarketplaceListings, purchaseIP } from '../utils/api';
+import { getMarketplaceListings, purchaseIP } from '@/utils/api';
 
 export default function Marketplace() {
   const router = useRouter();

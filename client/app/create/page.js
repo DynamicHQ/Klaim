@@ -4,9 +4,10 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { FaUpload, FaSpinner, FaCheck, FaWallet } from 'react-icons/fa';
 import { useAccount } from 'wagmi';
-import { createAsset } from '../utils/api';
+import { storyProtocolService, formatMetadataForStoryProtocol } from '@/utils/storyProtocol';
+import AuthGate from '@/components/AuthGate';
 
-export default function CreateNFT() {
+function CreateNFT() {
   const router = useRouter();
   const { address, isConnected } = useAccount();
 
@@ -76,16 +77,15 @@ export default function CreateNFT() {
     setStatus('loading');
 
     try {
+      // Format the form data for Story Protocol
+      const metadata = formatMetadataForStoryProtocol(formData);
+      
       // Call the single, high-level function to handle the entire process
-      const finalResponse = await createAsset(formData, address);
-
-      if (!finalResponse.success) {
-        throw new Error(finalResponse.message || 'Failed to create IP.');
-      }
+      const finalResponse = await storyProtocolService.createAndRegisterIP(metadata, address);
 
       setTransactionResult({
-        assetId: finalResponse.assetId,
-        transactionHash: 'mock-tx-' + finalResponse.assetId,
+        assetId: finalResponse.nftId || finalResponse.ipId,
+        transactionHash: finalResponse.transactionHash || 'mock-tx-' + (finalResponse.nftId || finalResponse.ipId),
       });
       setStatus('success');
     } catch (err) {
@@ -107,15 +107,16 @@ export default function CreateNFT() {
   };
 
   return (
-    <div className="min-h-screen bg-base-200 pt-20">
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-2xl mx-auto">
-          <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold mb-2">Create IP</h1>
-            <p className="text-base-content/70">
-              Mint your Intellectual Property as an NFT and add it to your collection.
-            </p>
-          </div>
+    <AuthGate>
+      <div className="min-h-screen bg-base-200 pt-20">
+        <div className="container mx-auto px-4 py-8">
+          <div className="max-w-2xl mx-auto">
+            <div className="text-center mb-8">
+              <h1 className="text-4xl font-bold mb-2">Create IP</h1>
+              <p className="text-base-content/70">
+                Mint your Intellectual Property as an NFT and add it to your collection.
+              </p>
+            </div>
 
           {!isConnected && (
             <div className="card bg-base-100 shadow-xl mb-6">
@@ -284,5 +285,10 @@ export default function CreateNFT() {
         </div>
       </div>
     </div>
+    </AuthGate>
   );
+}
+
+export default function CreateNFTPage() {
+  return <CreateNFT />;
 }
