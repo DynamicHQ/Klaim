@@ -31,7 +31,7 @@ export class Web3Service implements OnModuleInit {
     const ipMarketplaceABI = [
       'event IPListed(bytes32 indexed listingId, address indexed seller, address indexed ipId, uint256 price)',
       'event IPSold(bytes32 indexed listingId, address indexed buyer, address indexed seller, address indexed ipId, uint256 price)',
-      'function listIP(address nftContract, uint256 tokenId, uint256 price)',
+      'function listIP(uint256 tokenId, uint256 price)',
       'function purchaseIP(bytes32 listingId)',
     ];
 
@@ -82,7 +82,7 @@ export class Web3Service implements OnModuleInit {
     const wallet = new ethers.Wallet(privateKey, this.provider);
     const contract = this.ipCreatorContract.connect(wallet);
 
-    const tx = await contract.createIPFromFile(
+    const tx = await contract['createIPFromFile(address,string,bytes32,string)'](
       recipient,
       metadataURI,
       metadataHash,
@@ -106,7 +106,6 @@ export class Web3Service implements OnModuleInit {
 
   // List IP on marketplace
   async listIPOnChain(
-    nftContract: string,
     tokenId: number,
     price: number,
     privateKey: string,
@@ -119,7 +118,8 @@ export class Web3Service implements OnModuleInit {
     const contract = this.ipMarketplaceContract.connect(wallet);
 
     const priceInWei = ethers.parseEther(price.toString());
-    const tx = await contract.listIP(nftContract, tokenId, priceInWei);
+    // Cast to any and use the exact function signature so TypeScript won't complain about BaseContract typings
+    const tx = await (contract as any)['listIP(uint256,uint256)'](tokenId, priceInWei);
     const receipt = await tx.wait();
 
     return {
@@ -140,7 +140,7 @@ export class Web3Service implements OnModuleInit {
     const wallet = new ethers.Wallet(privateKey, this.provider);
     const contract = this.ipMarketplaceContract.connect(wallet);
 
-    const tx = await contract.purchaseIP(listingId);
+    const tx = await (contract as any)['purchaseIP(bytes32)'](listingId);
     const receipt = await tx.wait();
 
     return {

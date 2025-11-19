@@ -1,35 +1,31 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { FaUpload, FaSpinner, FaCheck, FaWallet } from 'react-icons/fa';
-import { createNFT, uploadImageToBase64, getConnectedWallet, initializeStorage } from '@/utils/mockData';
+import { useAccount } from 'wagmi';
+import { createAsset } from '../utils/api';
 
 export default function CreateNFT() {
   const router = useRouter();
-  const [wallet, setWallet] = useState(null);
-  
+  const { address, isConnected } = useAccount();
+
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    image: null
+    image: null,
   });
-  
-  const [status, setStatus] = useState('idle');
+
+  const [status, setStatus] = useState('idle'); // idle, loading, success, error
   const [error, setError] = useState('');
   const [transactionResult, setTransactionResult] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
 
-  useEffect(() => {
-    initializeStorage();
-    setWallet(getConnectedWallet());
-  }, []);
-
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
@@ -40,14 +36,14 @@ export default function CreateNFT() {
         setError('Please select a valid image file');
         return;
       }
-      
+
       if (file.size > 10 * 1024 * 1024) {
         setError('Image size must be less than 10MB');
         return;
       }
 
-      setFormData(prev => ({ ...prev, image: file }));
-      
+      setFormData((prev) => ({ ...prev, image: file }));
+
       const reader = new FileReader();
       reader.onload = (e) => setImagePreview(e.target.result);
       reader.readAsDataURL(file);
@@ -60,12 +56,12 @@ export default function CreateNFT() {
       setError('Title is required');
       return false;
     }
-    if (!formData.description.trim()) {
-      setError('Description is required');
-      return false;
-    }
     if (!formData.image) {
       setError('Image is required');
+      return false;
+    }
+    if (!isConnected) {
+      setError('Please connect your wallet first.');
       return false;
     }
     return true;
@@ -74,38 +70,26 @@ export default function CreateNFT() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    
-    if (!validateForm()) {
-      return;
-    }
+
+    if (!validateForm()) return;
 
     setStatus('loading');
-    
+
     try {
-      if (!wallet) {
-        setError('Please connect your wallet first');
-        setStatus('error');
-        setTimeout(() => router.push('/'), 2000);
-        return;
+      // Call the single, high-level function to handle the entire process
+      const finalResponse = await createAsset(formData, address);
+
+      if (!finalResponse.success) {
+        throw new Error(finalResponse.message || 'Failed to create IP.');
       }
 
-      const imageBase64 = await uploadImageToBase64(formData.image);
-      
-      const result = createNFT({
-        name: formData.title,
-        description: formData.description,
-        image_url: imageBase64,
-        price: 0
-      });
-      
       setTransactionResult({
-        nftId: result.id,
-        transactionHash: 'mock-tx-' + result.id
+        assetId: finalResponse.assetId,
+        transactionHash: 'mock-tx-' + finalResponse.assetId,
       });
       setStatus('success');
-      
     } catch (err) {
-      setError(err.message || 'Failed to create NFT');
+      setError(err.message || 'An unexpected error occurred during creation.');
       setStatus('error');
     }
   };
@@ -114,7 +98,7 @@ export default function CreateNFT() {
     setFormData({
       title: '',
       description: '',
-      image: null
+      image: null,
     });
     setImagePreview(null);
     setStatus('idle');
@@ -127,13 +111,13 @@ export default function CreateNFT() {
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto">
           <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold mb-2">Create NFT</h1>
+            <h1 className="text-4xl font-bold mb-2">Create IP</h1>
             <p className="text-base-content/70">
-              Mint your NFT and add it to your collection
+              Mint your Intellectual Property as an NFT and add it to your collection.
             </p>
           </div>
 
-          {!wallet && (
+          {!isConnected && (
             <div className="card bg-base-100 shadow-xl mb-6">
               <div className="card-body text-center">
                 <h2 className="card-title justify-center mb-4">
@@ -141,22 +125,20 @@ export default function CreateNFT() {
                   Connect Your Wallet
                 </h2>
                 <p className="text-base-content/70 mb-4">
-                  You need to connect your wallet to create NFTs
+                  You need to connect your wallet to create an IP
                 </p>
-                <button
-                  onClick={() => router.push('/')}
-                  className="btn btn-primary"
-                >
-                  Go to Home
-                </button>
+                {/* This button could trigger a wallet connection modal */}
+                <p className="text-sm text-base-content/50">
+                  Please use the wallet connector in the navigation bar.
+                </p>
               </div>
             </div>
           )}
 
-          {wallet && (
+          {isConnected && (
             <div className="alert alert-success mb-6">
               <FaCheck />
-              <span>Wallet connected: {wallet?.slice(0, 6)}...{wallet?.slice(-4)}</span>
+              <span>Wallet connected: {address?.slice(0, 6)}...{address?.slice(-4)}</span>
             </div>
           )}
 
@@ -167,10 +149,10 @@ export default function CreateNFT() {
                   <FaCheck className="mx-auto" />
                 </div>
                 <h2 className="card-title justify-center text-2xl mb-4">
-                  NFT Created Successfully!
+                  IP Created Successfully!
                 </h2>
                 <div className="space-y-2 text-left">
-                  <p><strong>NFT ID:</strong> {transactionResult.nftId}</p>
+                  <p><strong>Asset ID:</strong> {transactionResult.assetId}</p>
                   <p><strong>Transaction:</strong> {transactionResult.transactionHash}</p>
                 </div>
                 <div className="card-actions justify-center mt-6">
@@ -178,13 +160,13 @@ export default function CreateNFT() {
                     Create Another
                   </button>
                   <button onClick={() => router.push('/profile')} className="btn btn-outline">
-                    View My NFTs
+                    View My IPs
                   </button>
                 </div>
               </div>
             </div>
           ) : (
-            <div className={`card bg-base-100 shadow-xl ${!wallet ? 'opacity-50 pointer-events-none' : ''}`}>
+            <div className={`card bg-base-100 shadow-xl ${!isConnected ? 'opacity-50 pointer-events-none' : ''}`}>
               <div className="card-body">
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div className="form-control">
@@ -196,7 +178,7 @@ export default function CreateNFT() {
                       name="title"
                       value={formData.title}
                       onChange={handleInputChange}
-                      placeholder="Enter NFT title"
+                      placeholder="Enter IP title"
                       className="input input-bordered w-full"
                       disabled={status === 'loading'}
                       required
@@ -205,16 +187,15 @@ export default function CreateNFT() {
 
                   <div className="form-control">
                     <label className="label">
-                      <span className="label-text font-semibold">Description *</span>
+                      <span className="label-text font-semibold">Description</span>
                     </label>
                     <textarea
                       name="description"
                       value={formData.description}
                       onChange={handleInputChange}
-                      placeholder="Describe your NFT"
+                      placeholder="Describe your IP"
                       className="textarea textarea-bordered h-24"
                       disabled={status === 'loading'}
-                      required
                     />
                   </div>
 
@@ -235,7 +216,10 @@ export default function CreateNFT() {
                             type="button"
                             onClick={() => {
                               setImagePreview(null);
-                              setFormData(prev => ({ ...prev, image: null }));
+                              setFormData((prev) => ({ ...prev, image: null }));
+                              // Reset file input
+                              const fileInput = document.querySelector('input[type="file"]');
+                              if (fileInput) fileInput.value = '';
                             }}
                             className="btn btn-sm btn-circle btn-error absolute -top-2 -right-2"
                             disabled={status === 'loading'}
@@ -257,6 +241,7 @@ export default function CreateNFT() {
                         onChange={handleImageChange}
                         className="file-input file-input-bordered w-full max-w-xs"
                         disabled={status === 'loading'}
+                        required
                       />
                     </div>
                   </div>
@@ -271,15 +256,15 @@ export default function CreateNFT() {
                     <button
                       type="submit"
                       className={`btn btn-primary btn-lg w-full ${status === 'loading' ? 'loading' : ''}`}
-                      disabled={status === 'loading' || !wallet}
+                      disabled={status === 'loading' || !isConnected}
                     >
                       {status === 'loading' ? (
                         <>
                           <FaSpinner className="animate-spin mr-2" />
-                          Creating NFT...
+                          Creating IP...
                         </>
                       ) : (
-                        'Create NFT'
+                        'Create IP'
                       )}
                     </button>
                   </div>
@@ -287,7 +272,7 @@ export default function CreateNFT() {
                   {status === 'loading' && (
                     <div className="text-center">
                       <p className="text-base-content/70">
-                        Please wait while we create your NFT...
+                        Please wait while we create your IP... This may take a moment.
                       </p>
                       <progress className="progress progress-primary w-full mt-2"></progress>
                     </div>

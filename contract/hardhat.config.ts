@@ -47,20 +47,18 @@ const config: HardhatUserConfig = {
   },
   etherscan: {
     apiKey: {
-      // Story Protocol Aeneid testnet API key
-      "story-aeneid": "YOUR_API_KEY_HERE",
+      "story-aeneid": process.env.STORYSCAN_API_KEY || "",  // your Blockscout API key for Aeneid
     },
     customChains: [
       {
         network: "story-aeneid",
-        chainId: 1513,
+        chainId: 1315,
         urls: {
-          apiURL: "https://api.storyscan.xyz/api", // API endpoint for Storyscan
-          browserURL: "https://storyscan.xyz" // Explorer URL for Storyscan
+          apiURL: "https://aeneid.storyscan.io/api/",
+          browserURL: "https://aeneid.storyscan.io"
         }
       }
     ]
-  }
+}
 };
-
 export default config;

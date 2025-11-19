@@ -4,31 +4,37 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { FaSearch, FaSpinner } from 'react-icons/fa';
-import { getMarketplaceItems, purchaseNFT, getConnectedWallet, initializeStorage } from '@/utils/mockData';
+import { useAccount } from 'wagmi';
+import { getMarketplaceListings, purchaseIP } from '../utils/api';
 
 export default function Marketplace() {
   const router = useRouter();
+  const { address, isConnected } = useAccount();
+
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null);
-  const [wallet, setWallet] = useState(null);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    initializeStorage();
-    setWallet(getConnectedWallet());
     fetchProducts();
   }, []);
 
-  const fetchProducts = () => {
+  const fetchProducts = async () => {
     setLoading(true);
-    setTimeout(() => {
-      const items = getMarketplaceItems();
+    setError('');
+    try {
+      const items = await getMarketplaceListings();
       setProducts(items);
       setFilteredProducts(items);
+    } catch (err) {
+      setError('Failed to fetch marketplace items. Please try again later.');
+      console.error(err);
+    } finally {
       setLoading(false);
-    }, 500);
+    }
   };
 
   useEffect(() => {
@@ -47,20 +53,22 @@ export default function Marketplace() {
     setSelectedProduct(product);
   };
 
-  const handleBuyNow = (product) => {
-    if (!wallet) {
+  const handleBuyNow = async (product) => {
+    if (!isConnected) {
       alert('Please connect your wallet first');
-      router.push('/');
       return;
     }
 
-    const success = purchaseNFT(product.id);
-    if (success) {
-      alert('Purchase successful! Check "My NFTs" to see your collection.');
-      setSelectedProduct(null);
-      router.push('/profile');
-    } else {
-      alert('Purchase failed. Please try again.');
+    try {
+      const response = await purchaseIP(product.listingId, address);
+      if (response.success) {
+        alert('Purchase successful! Check "My IPs" to see your collection.');
+        setSelectedProduct(null);
+        router.push('/profile');
+      }
+    } catch (err) {
+      console.error('Purchase failed:', err);
+      alert(`Purchase failed: ${err.message}`);
     }
   };
 
@@ -72,6 +80,18 @@ export default function Marketplace() {
             <FaSpinner className="animate-spin text-4xl text-primary mx-auto mb-4" />
             <p className="text-lg">Loading marketplace...</p>
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-base-200 pt-20 flex items-center justify-center">
+        <div className="text-center text-error">
+          <h2 className="text-2xl font-bold mb-4">An Error Occurred</h2>
+          <p>{error}</p>
+          <button onClick={fetchProducts} className="btn btn-primary mt-4">Retry</button>
         </div>
       </div>
     );
@@ -110,7 +130,7 @@ export default function Marketplace() {
         {filteredProducts.length > 0 ? (
           <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-4">
             {filteredProducts.map((product) => (
-              <div key={product.id} className="break-inside-avoid mb-4">
+              <div key={product._id} className="break-inside-avoid mb-4">
                 <div 
                   className="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 cursor-pointer transform hover:-translate-y-1"
                   onClick={() => handleProductClick(product)}
