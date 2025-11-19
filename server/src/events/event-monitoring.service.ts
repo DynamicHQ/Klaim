@@ -24,12 +24,13 @@ export class EventMonitoringService implements OnModuleInit {
         // Find the asset in the database using the metadataURI, which is unique.
         const asset = await this.assetsService.findByMetadataURI(event.metadataURI);
         if (asset) {
-          await this.assetsService.updateBlockchainData(asset._id.toString(), {
+          const assetId = String(asset._id);
+          await this.assetsService.updateBlockchainData(assetId, {
             ipId: event.ipId,
             tokenId: event.tokenId,
             transactionHash: event.transactionHash,
           });
-          this.logger.log(`Asset ${asset._id} synced with on-chain data.`);
+          this.logger.log(`Asset ${assetId} synced with on-chain data.`);
         } else {
           this.logger.warn(`Could not find asset with metadataURI: ${event.metadataURI}`);
         }

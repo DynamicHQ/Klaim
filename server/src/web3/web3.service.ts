@@ -118,7 +118,8 @@ export class Web3Service implements OnModuleInit {
     const contract = this.ipMarketplaceContract.connect(wallet);
 
     const priceInWei = ethers.parseEther(price.toString());
-    const tx = await contract.listIP(tokenId, priceInWei);
+    // Cast to any and use the exact function signature so TypeScript won't complain about BaseContract typings
+    const tx = await (contract as any)['listIP(uint256,uint256)'](tokenId, priceInWei);
     const receipt = await tx.wait();
 
     return {
@@ -139,7 +140,7 @@ export class Web3Service implements OnModuleInit {
     const wallet = new ethers.Wallet(privateKey, this.provider);
     const contract = this.ipMarketplaceContract.connect(wallet);
 
-    const tx = await contract.purchaseIP(listingId);
+    const tx = await (contract as any)['purchaseIP(bytes32)'](listingId);
     const receipt = await tx.wait();
 
     return {

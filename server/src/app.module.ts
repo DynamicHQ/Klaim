@@ -4,7 +4,6 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { AssetsModule } from './assets/assets.module';
-import { Web3Module } from './web3/web3.module';
 
 
 @Module({
@@ -21,8 +20,7 @@ import { Web3Module } from './web3/web3.module';
     }),
       AuthModule,
       UserModule,
-      AssetsModule,
-      Web3Module,],
+      AssetsModule,],
   controllers: [],
   providers: [],
 })
