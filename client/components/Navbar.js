@@ -60,7 +60,7 @@ export default function Navbar() {
             Connect
           </button>
         ) : (
-          <div className="badge badge-success">
+          <div className="badge badge-success px-8 py-4">
             {wallet?.slice(0, 6)}...{wallet?.slice(-4)}
           </div>
         )}
@@ -108,7 +108,7 @@ export default function Navbar() {
           <a href="/profile">
            <div className="flex items-center gap-2">
               <FaUser />
-              My NFTs
+              Profile
             </div>
           </a>
         </li>
@@ -124,7 +124,7 @@ export default function Navbar() {
           <a href="/docs">
             <div className="flex items-center gap-2">
               <FaInfoCircle />
-              About
+              Docs
             </div>
           </a>
         </li>
