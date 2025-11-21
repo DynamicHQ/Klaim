@@ -3,12 +3,12 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { FaSearch, FaSpinner } from 'react-icons/fa';
-import { useAccount } from 'wagmi';
-import { getMarketplaceListings, purchaseIP } from '../utils/api';
+import { useWallet } from '@/hooks/useWallet';
+import { getMarketplaceListings, purchaseIP } from '@/utils/api';
 
 export default function Marketplace() {
   const router = useRouter();
-  const { address, isConnected } = useAccount();
+  const { account: address, isConnected } = useWallet();
 
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);

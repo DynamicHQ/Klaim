@@ -3,7 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import axios from 'axios';
 import { ConfigService } from '@nestjs/config';
-import { Asset, AssetDocument } from './schemas/asset.schema';
+import { Asset, AssetDocument } from './schema/asset.schema';
 import { CreateNftDto } from './dto/create-nft.dto';
 import { CreateIpDto } from './dto/create-ip.dto';
 import { ListMarketplaceDto } from './dto/list-marketplace.dto';

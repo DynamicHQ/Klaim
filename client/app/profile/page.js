@@ -4,24 +4,23 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { FaSpinner, FaWallet, FaUpload, FaDownload } from 'react-icons/fa';
 import { getMyNFTs, listNFTOnMarketplace, getConnectedWallet, initializeStorage } from '@/utils/mockData';
+import TokenFaucet from '@/components/TokenFaucet';
+import { useWallet } from '@/hooks/useWallet';
 
 export default function Profile() {
   const router = useRouter();
+  const { account: walletAddress, isConnected } = useWallet();
   const [myNFTs, setMyNFTs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [listingNFT, setListingNFT] = useState(null);
   const [listPrice, setListPrice] = useState('');
-  const [wallet, setWallet] = useState(null);
 
   useEffect(() => {
     initializeStorage();
-    const connectedWallet = getConnectedWallet();
-    setWallet(connectedWallet);
-    
-    if (connectedWallet) {
+    if (walletAddress) {
       fetchMyNFTs();
     }
-  }, []);
+  }, [walletAddress]);
 
   const fetchMyNFTs = () => {
     setLoading(true);
@@ -61,7 +60,12 @@ export default function Profile() {
     }
   };
 
-  if (!wallet) {
+  const handleClaimSuccess = (response) => {
+    console.log('Tokens claimed successfully:', response);
+    // Optionally refresh NFTs or show a success message
+  };
+
+  if (!walletAddress || !isConnected) {
     return (
       <div className="min-h-screen bg-base-200 pt-20">
         <div className="container mx-auto px-4 py-8">
@@ -104,9 +108,19 @@ export default function Profile() {
             Your NFT collection
           </p>
           <p className="text-sm text-base-content/50 mt-2">
-            Connected: {wallet?.slice(0, 6)}...{wallet?.slice(-4)}
+            Connected: {walletAddress?.slice(0, 6)}...{walletAddress?.slice(-4)}
           </p>
         </div>
+
+        {/* Token Faucet Component */}
+        {walletAddress && (
+          <div className="max-w-2xl mx-auto mb-8">
+            <TokenFaucet 
+              walletAddress={walletAddress} 
+              onClaimSuccess={handleClaimSuccess}
+            />
+          </div>
+        )}
 
         {myNFTs.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">

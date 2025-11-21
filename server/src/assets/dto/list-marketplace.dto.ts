@@ -1,7 +1,11 @@
 import { IsNotEmpty, IsString, IsNumber } from 'class-validator';
 
 export class ListMarketplaceDto {
-  @IsEthereumAddress()
+  @IsString()
+  @IsNotEmpty()
+  assetId: string;
+
+  @IsString()
   @IsNotEmpty()
   nftContract: string;
 
@@ -13,7 +17,7 @@ export class ListMarketplaceDto {
   @IsNotEmpty()
   price: number;
 
-  @IsEthereumAddress()
+  @IsString()
   @IsNotEmpty()
   seller: string;
 }

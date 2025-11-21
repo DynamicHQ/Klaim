@@ -3,7 +3,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { AssetsController } from './assets.controller';
 import { AssetsService } from './assets.service';
 import { Asset, AssetSchema } from './schema/asset.schema';
-import { AuthModule } from 'src/auth/auth.module';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
   imports: [

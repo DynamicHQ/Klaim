@@ -3,7 +3,6 @@ import { AssetsService } from './assets.service';
 import { CreateNftDto } from './dto/create-nft.dto';
 import { CreateIpDto } from './dto/create-ip.dto';
 import { ListMarketplaceDto } from './dto/list-marketplace.dto';
-import { ClaimIptDto } from './dto/claim-ip.dto';
 import { PurchaseIpDto } from './dto/purchase-ip.dto';
 import { AuthGuard } from '@nestjs/passport';
 
@@ -70,9 +69,4 @@ export class AssetsController {
     return this.assetsService.findById(id);
   }
 
-  // Claim IPT tokens (faucet)
-  @Post('faucet/claim-ipt')
-  async claimIPToken(@Body() claimIptDto: ClaimIptDto) {
-    return this.assetsService.claimIPToken(claimIptDto.walletAddress);
-  }
 }

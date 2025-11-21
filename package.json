@@ -1,0 +1,16 @@
+{
+  "name": "klaim-token-faucet",
+  "version": "1.0.0",
+  "description": "Token faucet integration for Klaim marketplace",
+  "scripts": {
+    "test:integration": "node test-faucet-integration.js",
+    "test:balance": "cd server && node test-balance.js",
+    "test:eligibility": "cd server && node test-eligibility.js",
+    "start:server": "cd server && pnpm start:dev",
+    "start:client": "cd client && pnpm dev",
+    "install:all": "cd server && pnpm install && cd ../client && pnpm install"
+  },
+  "keywords": ["blockchain", "faucet", "story-protocol", "nft", "ip"],
+  "author": "",
+  "license": "MIT"
+}

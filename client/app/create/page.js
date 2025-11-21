@@ -2,12 +2,12 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { FaUpload, FaSpinner, FaCheck, FaWallet } from 'react-icons/fa';
-import { useAccount } from 'wagmi';
-import { createAsset } from '../utils/api';
+import { useWallet } from '@/hooks/useWallet';
+import { createAsset } from '@/utils/api';
 
 export default function CreateNFT() {
   const router = useRouter();
-  const { address, isConnected } = useAccount();
+  const { account: address, isConnected } = useWallet();
 
   const [formData, setFormData] = useState({
     title: '',

@@ -1,11 +1,11 @@
-import { IsNotEmpty, IsString, IsEthereumAddress } from 'class-validator';
+import { IsNotEmpty, IsString } from 'class-validator';
 
 export class PurchaseIpDto {
   @IsString()
   @IsNotEmpty()
   listingId: string;
 
-  @IsEthereumAddress()
+  @IsString()
   @IsNotEmpty()
   buyer: string;
 }
