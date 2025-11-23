@@ -3,55 +3,97 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { FaSpinner, FaWallet, FaUpload, FaDownload } from 'react-icons/fa';
-import { getMyNFTs, listNFTOnMarketplace, getAccounts } from '@/utils/wallet';
+import { FaSpinner, FaWallet, FaUpload, FaDownload, FaPaperPlane } from 'react-icons/fa';
+import { useAccount } from 'wagmi';
+import { getUserIPs, listOnMarketplace, transferIPOwnership } from '@/utils/api';
+import { transferIP } from '@/utils/wallet';
 import AuthGate from '@/components/AuthGate';
 
 function Profile() {
   const router = useRouter();
+  const { address, isConnected } = useAccount();
+  
   const [myNFTs, setMyNFTs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [listingNFT, setListingNFT] = useState(null);
   const [listPrice, setListPrice] = useState('');
-  const [wallet, setWallet] = useState(null);
+  const [transferNFT, setTransferNFT] = useState(null);
+  const [transferAddress, setTransferAddress] = useState('');
 
   useEffect(() => {
-    initializeStorage();
-    const connectedWallet = getAccounts();
-    setWallet(connectedWallet);
-    
-    if (connectedWallet) {
+    if (address) {
       fetchMyNFTs();
     }
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [address]);
 
-  const fetchMyNFTs = () => {
+  const fetchMyNFTs = async () => {
+    if (!address) return;
+    
     setLoading(true);
-    setTimeout(() => {
-      const nfts = getMyNFTs();
+    try {
+      const nfts = await getUserIPs(address);
       setMyNFTs(nfts);
+    } catch (error) {
+      console.error('Error fetching NFTs:', error);
+    } finally {
       setLoading(false);
-    }, 500);
+    }
   };
 
   const handleListOnMarketplace = (nft) => {
     setListingNFT(nft);
   };
 
-  const confirmListing = () => {
+  const confirmListing = async () => {
     if (!listPrice || parseFloat(listPrice) <= 0) {
       alert('Please enter a valid price');
       return;
     }
 
-    const success = listNFTOnMarketplace(listingNFT, listPrice);
-    if (success) {
+    try {
+      await listOnMarketplace(
+        listingNFT.contractAddress || 'default-contract',
+        listingNFT.tokenId || listingNFT._id,
+        listPrice,
+        address
+      );
       alert('Successfully listed on marketplace!');
       setListingNFT(null);
       setListPrice('');
       fetchMyNFTs();
-    } else {
-      alert('Failed to list on marketplace');
+    } catch (error) {
+      console.error('Listing error:', error);
+      alert('Failed to list on marketplace: ' + error.message);
+    }
+  };
+
+  const handleTransfer = (nft) => {
+    setTransferNFT(nft);
+  };
+
+  const confirmTransfer = async () => {
+    if (!transferAddress || !transferAddress.match(/^0x[a-fA-F0-9]{40}$/)) {
+      alert('Please enter a valid Ethereum address');
+      return;
+    }
+
+    try {
+      // First, transfer on blockchain if contract address exists
+      if (transferNFT.contractAddress && transferNFT.tokenId) {
+        await transferIP(transferNFT.contractAddress, transferNFT.tokenId, transferAddress);
+      }
+      
+      // Then update backend
+      await transferIPOwnership(transferNFT._id, address, transferAddress);
+      
+      alert('Successfully transferred IP!');
+      setTransferNFT(null);
+      setTransferAddress('');
+      fetchMyNFTs();
+    } catch (error) {
+      console.error('Transfer error:', error);
+      alert('Failed to transfer IP: ' + error.message);
     }
   };
 
@@ -63,7 +105,7 @@ function Profile() {
     }
   };
 
-  if (!wallet) {
+  if (!isConnected) {
     return (
       <div className="min-h-screen bg-base-200 pt-20">
         <div className="container mx-auto px-4 py-8">
@@ -107,7 +149,7 @@ function Profile() {
               Your NFT collection
             </p>
             <p className="text-sm text-base-content/50 mt-2">
-              Connected: {wallet?.slice(0, 6)}...{wallet?.slice(-4)}
+              Connected: {address?.slice(0, 6)}...{address?.slice(-4)}
             </p>
           </div>
 
@@ -132,13 +174,20 @@ function Profile() {
                     {nft.description}
                   </p>
                   
-                  <div className="card-actions justify-end mt-4">
+                  <div className="card-actions justify-end mt-4 flex-wrap gap-2">
                     <button 
                       className="btn btn-sm btn-outline"
                       onClick={() => handleDownload(nft)}
                     >
                       <FaDownload className="mr-1" />
                       Download
+                    </button>
+                    <button 
+                      className="btn btn-sm btn-secondary"
+                      onClick={() => handleTransfer(nft)}
+                    >
+                      <FaPaperPlane className="mr-1" />
+                      Transfer
                     </button>
                     <button 
                       className="btn btn-sm btn-primary"
@@ -216,6 +265,60 @@ function Profile() {
               onClick={() => {
                 setListingNFT(null);
                 setListPrice('');
+              }}
+            ></div>
+          </div>
+        )}
+
+        {transferNFT && (
+          <div className="modal modal-open">
+            <div className="modal-box">
+              <h3 className="font-bold text-xl mb-4">Transfer IP</h3>
+              <p className="mb-4">
+                Transfer <strong>{transferNFT.name}</strong> to another wallet
+              </p>
+              
+              <div className="form-control mb-4">
+                <label className="label">
+                  <span className="label-text">Recipient Wallet Address</span>
+                </label>
+                <input
+                  type="text"
+                  placeholder="0x..."
+                  value={transferAddress}
+                  onChange={(e) => setTransferAddress(e.target.value)}
+                  className="input input-bordered"
+                />
+                <label className="label">
+                  <span className="label-text-alt text-warning">
+                    ⚠️ This action cannot be undone. Double-check the address.
+                  </span>
+                </label>
+              </div>
+              
+              <div className="modal-action">
+                <button 
+                  className="btn"
+                  onClick={() => {
+                    setTransferNFT(null);
+                    setTransferAddress('');
+                  }}
+                >
+                  Cancel
+                </button>
+                <button 
+                  className="btn btn-secondary"
+                  onClick={confirmTransfer}
+                >
+                  Confirm Transfer
+                </button>
+              </div>
+            </div>
+            <div 
+              className="modal-backdrop"
+              onClick={() => {
+                setTransferNFT(null);
+                setTransferAddress('');
               }}
             ></div>
           </div>

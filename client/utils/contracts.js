@@ -18,9 +18,11 @@ export const IP_CREATOR_ABI = [
 export const IP_MARKETPLACE_ABI = [
   'event IPListed(bytes32 indexed listingId, address indexed seller, address indexed ipId, uint256 price)',
   'event IPSold(bytes32 indexed listingId, address indexed buyer, address indexed seller, address indexed ipId, uint256 price)',
-  'function listIP(address nftContract, uint256 tokenId, uint256 price)',
+  'event ListingCancelled(bytes32 indexed listingId)',
+  'function listIP(uint256 tokenId, uint256 price)',
   'function purchaseIP(bytes32 listingId)',
-  'function listings(bytes32 listingId) view returns (address seller, address nftContract, uint256 tokenId, address ipId, uint256 price, bool active)',
+  'function cancelListing(bytes32 listingId)',
+  'function listings(bytes32 listingId) view returns (address seller, uint256 tokenId, address ipId, uint256 price, bool active)',
 ];
 
 export const IP_TOKEN_ABI = [
@@ -121,11 +123,38 @@ export const createIPOnChain = async (recipient, metadataURI, metadata, licenseU
   };
 };
 
-export const listIPOnChain = async (nftContract, tokenId, price) => {
+export const listIPOnChain = async (tokenId, price) => {
   const contract = await getIPMarketplaceContract();
   const priceInWei = formatIPTAmount(price);
   
-  const tx = await contract.listIP(nftContract, tokenId, priceInWei);
+  const tx = await contract.listIP(tokenId, priceInWei);
+  const receipt = await tx.wait();
+  
+  // Parse events to get listingId
+  const event = receipt.logs.find(log => {
+    try {
+      const parsed = contract.interface.parseLog(log);
+      return parsed.name === 'IPListed';
+    } catch {
+      return false;
+    }
+  });
+  
+  let listingId = null;
+  if (event) {
+    const parsed = contract.interface.parseLog(event);
+    listingId = parsed.args.listingId;
+  }
+  
+  return {
+    transactionHash: receipt.hash,
+    listingId,
+  };
+};
+
+export const cancelListingOnChain = async (listingId) => {
+  const contract = await getIPMarketplaceContract();
+  const tx = await contract.cancelListing(listingId);
   const receipt = await tx.wait();
   
   return {
@@ -161,4 +190,36 @@ export const checkIPTAllowance = async (owner, spender) => {
   const contract = await getIPTokenContract();
   const allowance = await contract.allowance(owner, spender);
   return parseIPTAmount(allowance);
+};
+
+export const getListingDetails = async (listingId) => {
+  const contract = await getIPMarketplaceContract();
+  const listing = await contract.listings(listingId);
+  
+  return {
+    seller: listing.seller,
+    tokenId: listing.tokenId.toString(),
+    ipId: listing.ipId,
+    price: parseIPTAmount(listing.price),
+    active: listing.active,
+  };
+};
+
+export default {
+  CONTRACT_ADDRESSES,
+  getProvider,
+  getSigner,
+  getIPCreatorContract,
+  getIPMarketplaceContract,
+  getIPTokenContract,
+  calculateMetadataHash,
+  formatIPTAmount,
+  parseIPTAmount,
+  createIPOnChain,
+  listIPOnChain,
+  cancelListingOnChain,
+  purchaseIPOnChain,
+  getIPTBalance,
+  checkIPTAllowance,
+  getListingDetails,
 };

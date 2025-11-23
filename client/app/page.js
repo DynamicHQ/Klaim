@@ -1,10 +1,10 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Image } from 'next/image';
+import Image from 'next/image';
 import { Inter, Oswald } from "next/font/google";
 import { FaCheck } from 'react-icons/fa';
-import { getAccounts } from '@/utils/wallet';
+import { useAccount } from 'wagmi';
 
 const inter = Inter({
   variable: "--font-inter",
@@ -18,11 +18,7 @@ const oswald = Oswald({
 
 export default function Home() {
   const router = useRouter();
-  const [wallet, setWallet] = useState(null);
-
-  useEffect(() => {
-    setWallet(getAccounts());
-  }, []);
+  const { address, isConnected } = useAccount();
 
   return (
     <main className="bg-background flex flex-col items-center justify-between">
@@ -41,11 +37,11 @@ export default function Home() {
               Explore the world of digital ownership with Klaim, the premier platform for creating, managing, and trading IPs. Join our community of creators and collectors today!
             </p>
             
-            {wallet ? (
+            {isConnected ? (
               <div className="flex flex-col gap-4">
                 <div className="alert alert-success">
                   <FaCheck />
-                  <span>Connected: {wallet.slice(0, 6)}...{wallet.slice(-4)}</span>
+                  <span>Connected: {address?.slice(0, 6)}...{address?.slice(-4)}</span>
                 </div>
                 <div className="flex justify-center gap-4">
                   <button onClick={() => router.push('/create')} className="btn bg-main text-white rounded-md px-8 py-6 outline-none transition-transform duration-300 hover:-translate-y-1">Create NFT</button>

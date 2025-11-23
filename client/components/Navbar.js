@@ -3,31 +3,26 @@
 import { useState, useEffect } from 'react';
 import Link from "next/link"
 import Image from "next/image"
-import { FaUser, FaStore, FaInfoCircle, FaQuestionCircle, FaSignOutAlt, FaMenu, FaWallet } from "react-icons/fa";
-import { connectWallet, getConnectedWallet, disconnectWallet, initializeStorage } from '@/utils/mockData';
+import { FaUser, FaStore, FaInfoCircle, FaQuestionCircle, FaSignOutAlt, FaBars, FaWallet } from "react-icons/fa";
+import { useAccount } from 'wagmi';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function Navbar() {
-  const [wallet, setWallet] = useState(null);
+  const { address, isConnected } = useAccount();
+  const { logout } = useAuth();
   const [theme, setTheme] = useState('light');
 
   useEffect(() => {
-    initializeStorage();
-    setWallet(getConnectedWallet());
-    
     // Load theme from localStorage
-    const savedTheme = localStorage.getItem('theme') || 'light';
-    setTheme(savedTheme);
-    document.documentElement.setAttribute('data-theme', savedTheme);
+    if (typeof window !== 'undefined') {
+      const savedTheme = localStorage.getItem('theme') || 'light';
+      setTheme(savedTheme);
+      document.documentElement.setAttribute('data-theme', savedTheme);
+    }
   }, []);
 
-  const handleConnect = () => {
-    const newWallet = connectWallet();
-    setWallet(newWallet);
-  };
-
   const handleDisconnect = () => {
-    disconnectWallet();
-    setWallet(null);
+    logout();
   };
 
   // Toggle theme and save to localStorage
@@ -46,17 +41,17 @@ export default function Navbar() {
         </Link>
       </div>
       <div className="flex gap-2 md:gap-4">
-        {!wallet ? (
-          <button 
-            onClick={handleConnect}
+        {!isConnected ? (
+          <Link 
+            href="/login"
             className="px-8 py-4 btn outline-main text-main btn-outline btn-md rounded-md hover:bg-main hover:text-white"
           >
             <FaWallet className="w-4 h-4" />
             Get Started
-          </button>
+          </Link>
         ) : (
           <div className="badge badge-success px-8 py-4">
-            {wallet?.slice(0, 6)}...{wallet?.slice(-4)}
+            {address?.slice(0, 6)}...{address?.slice(-4)}
           </div>
         )}
         
@@ -87,8 +82,8 @@ export default function Navbar() {
     
     <div className="dropdown dropdown-end">
       <div tabIndex={0} role="button" className="btn btn-ghost btn-circle avatar my-auto">
-        <div className="w-10 h-10 rounded-full relative overflow-hidden">
-          <FaMenu className="object-fill" />
+        <div className="w-10 h-10 rounded-full relative overflow-hidden flex items-center justify-center">
+          <FaBars className="text-2xl" />
         </div>
       </div>
       <ul
@@ -126,7 +121,7 @@ export default function Navbar() {
             </div>
           </a>
         </li>
-        {wallet && (
+        {isConnected && (
           <li>
             <a onClick={handleDisconnect}>
               <div className="flex items-center gap-2">

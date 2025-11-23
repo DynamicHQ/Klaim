@@ -247,6 +247,21 @@ export async function getUserIPs(walletAddress) {
   return getJSON(`/assets/user/${walletAddress}`);
 }
 
+/**
+ * Transfer IP ownership to another wallet
+ * @param {string} assetId - Asset/IP ID to transfer
+ * @param {string} fromAddress - Current owner wallet address
+ * @param {string} toAddress - Recipient wallet address
+ * @returns {Promise<Object>} Transfer response
+ */
+export async function transferIPOwnership(assetId, fromAddress, toAddress) {
+  return postJSON('/assets/transfer', {
+    assetId,
+    fromAddress,
+    toAddress
+  });
+}
+
 export async function uploadToCloudinary(file) {
   // Upload file to Cloudinary
   const formData = new FormData();
@@ -299,6 +314,7 @@ export default {
   purchaseIP,
   getMarketplaceListings,
   getUserIPs,
+  transferIPOwnership,
   // Utility
   uploadToCloudinary,
   readFileAsDataURL,

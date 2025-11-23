@@ -96,20 +96,46 @@ export async function getAccounts() {
   }
 }
 
-/*
-* Fetching registered IP on your wallet
-* returns an object of Registered IP
-*/
+/**
+ * Transfer IP/NFT to another wallet
+ * @param {string} contractAddress - NFT contract address
+ * @param {string} tokenId - Token ID to transfer
+ * @param {string} toAddress - Recipient wallet address
+ * @returns {Promise<string>} Transaction hash
+ */
+export async function transferIP(contractAddress, tokenId, toAddress) {
+  if (!isMetaMaskInstalled()) {
+    throw new Error('MetaMask is not installed.');
+  }
 
-export function async getMyNFTs() {
   try {
-    const accounts = await window.ethereum.request({
-      method: 'eth_accounts',
+    const accounts = await getAccounts();
+    if (!accounts || accounts.length === 0) {
+      throw new Error('No wallet connected. Please connect your wallet first.');
+    }
+
+    const fromAddress = accounts[0];
+
+    // ERC-721 transferFrom function signature
+    const transferData = window.ethereum.request({
+      method: 'eth_sendTransaction',
+      params: [{
+        from: fromAddress,
+        to: contractAddress,
+        data: `0x23b872dd${
+          fromAddress.slice(2).padStart(64, '0')}${
+          toAddress.slice(2).padStart(64, '0')}${
+          tokenId.toString(16).padStart(64, '0')
+        }`
+      }]
     });
-    return accounts || [];
+
+    return transferData;
   } catch (error) {
-    console.error('Error getting accounts:', error);
-    return [];
+    if (error.code === 4001) {
+      throw new Error('You rejected the transfer request.');
+    }
+    throw error;
   }
 }
 
@@ -306,5 +332,6 @@ export default {
   switchToSepolia,
   isOnCorrectNetwork,
   getNetworkName,
+  transferIP,
   NETWORKS,
 };
