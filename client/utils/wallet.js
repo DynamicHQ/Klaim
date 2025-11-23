@@ -1,9 +1,6 @@
-/**
+/*
  * Wallet utility for MetaMask integration
  * Handles wallet connection, message signing, and event listeners
- */
-
-/**
  * Check if MetaMask is installed
  * @returns {boolean} True if MetaMask is installed
  */
@@ -99,7 +96,24 @@ export async function getAccounts() {
   }
 }
 
-/**
+/*
+* Fetching registered IP on your wallet
+* returns an object of Registered IP
+*/
+
+export function async getMyNFTs() {
+  try {
+    const accounts = await window.ethereum.request({
+      method: 'eth_accounts',
+    });
+    return accounts || [];
+  } catch (error) {
+    console.error('Error getting accounts:', error);
+    return [];
+  }
+}
+
+/*
  * Listen for account changes
  * @param {Function} callback - Callback function that receives array of accounts
  * @returns {Function} Cleanup function to remove listener

@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
 
-/**
+/*
  * Custom hook for managing theme state
  * Handles theme persistence in localStorage and applies theme to document
- * 
  * @returns {Object} { theme, toggleTheme, setTheme }
  */
 export function useTheme() {

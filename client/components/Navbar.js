@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from "next/link"
 import Image from "next/image"
-import { FaUser, FaStore, FaInfoCircle, FaQuestionCircle, FaSignOutAlt, FaPlus, FaWallet } from "react-icons/fa";
+import { FaUser, FaStore, FaInfoCircle, FaQuestionCircle, FaSignOutAlt, FaMenu, FaWallet } from "react-icons/fa";
 import { connectWallet, getConnectedWallet, disconnectWallet, initializeStorage } from '@/utils/mockData';
 
 export default function Navbar() {
@@ -46,18 +46,13 @@ export default function Navbar() {
         </Link>
       </div>
       <div className="flex gap-2 md:gap-4">
-        <a href="/create" className="px-8 py-4 btn btn-md bg-main rounded-md text-white hover:bg-main/90 transition-colors">
-          <FaPlus className="w-4 h-4" />
-          Create
-        </a>
-        
         {!wallet ? (
           <button 
             onClick={handleConnect}
             className="px-8 py-4 btn outline-main text-main btn-outline btn-md rounded-md hover:bg-main hover:text-white"
           >
             <FaWallet className="w-4 h-4" />
-            Connect
+            Get Started
           </button>
         ) : (
           <div className="badge badge-success px-8 py-4">
@@ -93,12 +88,7 @@ export default function Navbar() {
     <div className="dropdown dropdown-end">
       <div tabIndex={0} role="button" className="btn btn-ghost btn-circle avatar my-auto">
         <div className="w-10 h-10 rounded-full relative overflow-hidden">
-          <Image
-            alt="User avatar"
-            src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp"
-            fill
-            className="object-cover"
-          />
+          <FaMenu className="object-fill" />
         </div>
       </div>
       <ul

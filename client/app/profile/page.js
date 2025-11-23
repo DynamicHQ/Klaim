@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { FaSpinner, FaWallet, FaUpload, FaDownload } from 'react-icons/fa';
-import { getMyNFTs, listNFTOnMarketplace, getConnectedWallet, initializeStorage } from '@/utils/mockData';
+import { getMyNFTs, listNFTOnMarketplace, getAccounts } from '@/utils/wallet';
 import AuthGate from '@/components/AuthGate';
 
 function Profile() {
@@ -17,7 +17,7 @@ function Profile() {
 
   useEffect(() => {
     initializeStorage();
-    const connectedWallet = getConnectedWallet();
+    const connectedWallet = getAccounts();
     setWallet(connectedWallet);
     
     if (connectedWallet) {

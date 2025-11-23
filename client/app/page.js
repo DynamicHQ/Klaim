@@ -1,10 +1,10 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Image from 'next/image';
+import { Image } from 'next/image';
 import { Inter, Oswald } from "next/font/google";
-import { FaWallet, FaCheck } from 'react-icons/fa';
-import { connectWallet, getConnectedWallet, initializeStorage } from '@/utils/mockData';
+import { FaCheck } from 'react-icons/fa';
+import { getAccounts } from '@/utils/wallet';
 
 const inter = Inter({
   variable: "--font-inter",
@@ -21,15 +21,8 @@ export default function Home() {
   const [wallet, setWallet] = useState(null);
 
   useEffect(() => {
-    initializeStorage();
-    setWallet(getConnectedWallet());
+    setWallet(getAccounts());
   }, []);
-
-  const handleConnectWallet = () => {
-    const newWallet = connectWallet();
-    setWallet(newWallet);
-    alert('Wallet connected successfully!');
-  };
 
   return (
     <main className="bg-background flex flex-col items-center justify-between">
@@ -61,10 +54,7 @@ export default function Home() {
               </div>
             ) : (
               <div className="flex justify-center gap-4">
-                <button onClick={handleConnectWallet} className="btn bg-main text-white rounded-md px-8 py-6 outline-none transition-transform duration-300 hover:-translate-y-1 flex items-center gap-2">
-                  <FaWallet />
-                  Connect Wallet
-                </button>
+                <a href='/login' className="btn bg-main text-white rounded-md px-8 py-6 outline-none transition-transform duration-300 hover:-translate-y-1 flex items-center gap-2">Get Started</a>
                 <a href="/docs" className="btn outline-main btn-outline text-main rounded-md px-8 py-6 transition-transform duration-300 hover:-translate-y-1 hover:text-white hover:bg-main">Learn More</a>
               </div>
             )}

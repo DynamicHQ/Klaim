@@ -1,6 +1,5 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import Navbar from "@/components/Navbar";
-import MockDataIndicator from "@/components/MockDataIndicator";
 import { Providers } from "./providers";
 import "./globals.css";
 
@@ -31,7 +30,6 @@ export default function RootLayout({ children }) {
         <Providers>
           <Navbar />
           {children}
-          <MockDataIndicator />
         </Providers>
       </body>
     </html>
