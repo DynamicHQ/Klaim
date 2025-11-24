@@ -357,14 +357,11 @@ export default {
   purchaseIP,
   getMarketplaceListings,
   getUserIPs,
-<<<<<<< HEAD
   transferIPOwnership,
-=======
   // Faucet endpoints
   claimTokens,
   checkEligibility,
   getTokenBalance,
->>>>>>> 0844788e83e739f1c56a49cfcf73347ed3ee11d4
   // Utility
   uploadToCloudinary,
   readFileAsDataURL,

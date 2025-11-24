@@ -3,14 +3,16 @@
 import { useState, useEffect } from 'react';
 import Link from "next/link"
 import Image from "next/image"
-import { FaUser, FaStore, FaInfoCircle, FaQuestionCircle, FaSignOutAlt, FaBars, FaWallet } from "react-icons/fa";
+import { FaUser, FaStore, FaInfoCircle, FaQuestionCircle, FaSignOutAlt, FaWallet, FaSpinner, FaExclamationTriangle } from "react-icons/fa";
 import { useAccount } from 'wagmi';
 import { useAuth } from '@/contexts/AuthContext';
+import { useKIPBalance } from '@/hooks/useKIPBalance';
 
 export default function Navbar() {
   const { address, isConnected } = useAccount();
   const { logout } = useAuth();
   const [theme, setTheme] = useState('light');
+  const { formattedBalance, loading: balanceLoading, error: balanceError } = useKIPBalance(address);
 
   useEffect(() => {
     // Load theme from localStorage
@@ -50,8 +52,43 @@ export default function Navbar() {
             Get Started
           </Link>
         ) : (
-          <div className="badge badge-success px-8 py-4">
-            {address?.slice(0, 6)}...{address?.slice(-4)}
+          <div className="flex items-center gap-1 md:gap-2">
+            {/* KIP Balance Display */}
+            <div 
+              className="flex items-center gap-1 px-2 md:px-3 py-1 md:py-2 bg-primary/10 rounded-lg"
+              role="status"
+              aria-label={balanceLoading ? 'Loading KIP balance' : `KIP balance: ${formattedBalance || '0'}`}
+            >
+              {balanceLoading ? (
+                <FaSpinner 
+                  className="animate-spin text-primary w-3 h-3" 
+                  aria-hidden="true"
+                />
+              ) : balanceError ? (
+                <FaExclamationTriangle 
+                  className="text-warning w-3 h-3" 
+                  title={balanceError}
+                  aria-label={`Balance error: ${balanceError}`}
+                />
+              ) : (
+                <span 
+                  className="text-primary font-semibold text-xs md:text-sm"
+                  aria-label={`KIP token balance: ${formattedBalance || '0'}`}
+                >
+                  {formattedBalance || '0'} KIP
+                </span>
+              )}
+            </div>
+            
+            {/* Wallet Address */}
+            <div 
+              className="badge badge-success px-2 md:px-4 py-2 md:py-3 text-xs md:text-sm"
+              role="status"
+              aria-label={`Connected wallet address: ${address}`}
+            >
+              <span className="hidden sm:inline">{address?.slice(0, 6)}...{address?.slice(-4)}</span>
+              <span className="sm:hidden">{address?.slice(0, 4)}...{address?.slice(-2)}</span>
+            </div>
           </div>
         )}
         
@@ -82,8 +119,8 @@ export default function Navbar() {
     
     <div className="dropdown dropdown-end">
       <div tabIndex={0} role="button" className="btn btn-ghost btn-circle avatar my-auto">
-        <div className="w-10 h-10 rounded-full relative overflow-hidden flex items-center justify-center">
-          <FaBars className="text-2xl" />
+        <div tabIndex={0} role="button" className="btn btn-ghost btn-circle">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"> <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h7" /> </svg>
         </div>
       </div>
       <ul

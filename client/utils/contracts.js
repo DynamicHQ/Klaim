@@ -26,10 +26,28 @@ export const IP_MARKETPLACE_ABI = [
 ];
 
 export const IP_TOKEN_ABI = [
+  // Standard ERC20 functions
   'function approve(address spender, uint256 amount) returns (bool)',
   'function balanceOf(address account) view returns (uint256)',
   'function transfer(address to, uint256 amount) returns (bool)',
   'function allowance(address owner, address spender) view returns (uint256)',
+  'function totalSupply() view returns (uint256)',
+  'function transferFrom(address from, address to, uint256 amount) returns (bool)',
+  
+  // ERC20 metadata functions
+  'function name() view returns (string)',
+  'function symbol() view returns (string)',
+  'function decimals() view returns (uint8)',
+  
+  // IPToken specific functions
+  'function mint(address to, uint256 amount)',
+  'function burn(uint256 amount)',
+  'function owner() view returns (address)',
+  
+  // Events
+  'event Transfer(address indexed from, address indexed to, uint256 value)',
+  'event Approval(address indexed owner, address indexed spender, uint256 value)',
+  'event TokensMinted(address indexed to, uint256 amount)',
 ];
 
 // Get provider and signer
@@ -186,6 +204,23 @@ export const getIPTBalance = async (address) => {
   return parseIPTAmount(balance);
 };
 
+export const getKIPTokenInfo = async () => {
+  const contract = await getIPTokenContract();
+  const [name, symbol, decimals, totalSupply] = await Promise.all([
+    contract.name(),
+    contract.symbol(),
+    contract.decimals(),
+    contract.totalSupply()
+  ]);
+  
+  return {
+    name,
+    symbol,
+    decimals: Number(decimals),
+    totalSupply: parseIPTAmount(totalSupply)
+  };
+};
+
 export const checkIPTAllowance = async (owner, spender) => {
   const contract = await getIPTokenContract();
   const allowance = await contract.allowance(owner, spender);
@@ -220,6 +255,7 @@ export default {
   cancelListingOnChain,
   purchaseIPOnChain,
   getIPTBalance,
+  getKIPTokenInfo,
   checkIPTAllowance,
   getListingDetails,
 };

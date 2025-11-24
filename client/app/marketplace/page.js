@@ -3,17 +3,17 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { FaSearch, FaSpinner } from 'react-icons/fa';
-<<<<<<< HEAD
-import { useAccount } from 'wagmi';
-=======
+import { FaSearch, FaSpinner, FaShieldAlt, FaCheckCircle, FaExclamationTriangle } from 'react-icons/fa';
 import { useWallet } from '@/hooks/useWallet';
->>>>>>> 0844788e83e739f1c56a49cfcf73347ed3ee11d4
 import { getMarketplaceListings, purchaseIP } from '@/utils/api';
+import { useTransactionSecurity } from '@/hooks/useTransactionSecurity';
+import TransactionVerificationModal from '@/components/TransactionVerificationModal';
+import SecurityTooltip from '@/components/SecurityTooltip';
 
 export default function Marketplace() {
   const router = useRouter();
   const { account: address, isConnected } = useWallet();
+  const { executeSecureTransaction, isVerifying, stepMessage, verificationStep, currentVerification } = useTransactionSecurity();
 
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -64,8 +64,21 @@ export default function Marketplace() {
     }
 
     try {
-      const response = await purchaseIP(product.listingId, address);
-      if (response.success) {
+      const transactionOptions = {
+        type: 'purchase',
+        assetId: product._id,
+        price: product.price,
+        listingId: product.listingId
+      };
+
+      const result = await executeSecureTransaction(
+        transactionOptions,
+        async () => {
+          return await purchaseIP(product.listingId, address);
+        }
+      );
+
+      if (result.success) {
         alert('Purchase successful! Check "My IPs" to see your collection.');
         setSelectedProduct(null);
         router.push('/profile');
@@ -105,6 +118,26 @@ export default function Marketplace() {
     <div className="min-h-screen bg-base-200 pt-20">
       <title>Klaim | Marketplace</title>
       <div className="container mx-auto px-4 py-8">
+        {/* Transaction Verification Status */}
+        {stepMessage && (
+          <div className={`alert mb-6 ${
+            stepMessage.type === 'success' ? 'alert-success' : 
+            stepMessage.type === 'error' ? 'alert-error' : 
+            stepMessage.type === 'warning' ? 'alert-warning' : 'alert-info'
+          }`}>
+            <div className="flex items-center gap-2">
+              {stepMessage.type === 'success' && <FaCheckCircle className="w-5 h-5" />}
+              {stepMessage.type === 'error' && <FaExclamationTriangle className="w-5 h-5" />}
+              {stepMessage.type === 'warning' && <FaShieldAlt className="w-5 h-5" />}
+              {stepMessage.type === 'info' && <FaSpinner className="animate-spin w-5 h-5" />}
+              <div>
+                <h3 className="font-bold">{stepMessage.title}</h3>
+                <p className="text-sm">{stepMessage.message}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold mb-2">NFT Marketplace</h1>
           <p className="text-base-content/70">
@@ -148,7 +181,7 @@ export default function Marketplace() {
                     />
                     <div className="absolute top-2 right-2">
                       <div className="badge badge-primary badge-lg font-bold">
-                        {product.price} IPT
+                        {product.price} KIP
                       </div>
                     </div>
                   </figure>
@@ -160,17 +193,31 @@ export default function Marketplace() {
                     
                     <div className="card-actions justify-between items-center mt-4">
                       <div className="text-lg font-bold text-primary">
-                        {product.price} IPT
+                        {product.price} KIP
                       </div>
-                      <button 
-                        className="btn btn-primary btn-sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleBuyNow(product);
-                        }}
-                      >
-                        Buy Now
-                      </button>
+                      <SecurityTooltip content="Secure purchase with wallet verification to prevent bot attacks">
+                        <button 
+                          className={`btn btn-primary btn-sm ${isVerifying ? 'loading' : ''}`}
+                          disabled={isVerifying}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleBuyNow(product);
+                          }}
+                          aria-label={`Buy ${product.name} for ${product.price} KIP with secure verification`}
+                        >
+                          {isVerifying ? (
+                            <>
+                              <FaSpinner className="animate-spin w-3 h-3 mr-1" aria-hidden="true" />
+                              Verifying...
+                            </>
+                          ) : (
+                            <>
+                              <FaShieldAlt className="w-3 h-3 mr-1" aria-hidden="true" />
+                              Buy Now
+                            </>
+                          )}
+                        </button>
+                      </SecurityTooltip>
                     </div>
                   </div>
                 </div>
@@ -201,21 +248,43 @@ export default function Marketplace() {
               </div>
               <p className="mb-4">{selectedProduct.description}</p>
               <p className="mb-2"><strong>Created by:</strong> {selectedProduct.creator}</p>
-              <p className="mb-4"><strong>Price:</strong> {selectedProduct.price} IPT</p>
+              <p className="mb-4"><strong>Price:</strong> {selectedProduct.price} KIP</p>
               
               <div className="modal-action">
                 <button className="btn" onClick={() => setSelectedProduct(null)}>Close</button>
-                <button 
-                  className="btn btn-primary"
-                  onClick={() => handleBuyNow(selectedProduct)}
-                >
-                  Buy Now
-                </button>
+                <SecurityTooltip content="Secure purchase with wallet verification to prevent bot attacks">
+                  <button 
+                    className={`btn btn-primary ${isVerifying ? 'loading' : ''}`}
+                    disabled={isVerifying}
+                    onClick={() => handleBuyNow(selectedProduct)}
+                  >
+                    {isVerifying ? (
+                      <>
+                        <FaSpinner className="animate-spin w-4 h-4 mr-2" />
+                        Verifying...
+                      </>
+                    ) : (
+                      <>
+                        <FaShieldAlt className="w-4 h-4 mr-2" />
+                        Buy Now
+                      </>
+                    )}
+                  </button>
+                </SecurityTooltip>
               </div>
             </div>
             <div className="modal-backdrop" onClick={() => setSelectedProduct(null)}></div>
           </div>
         )}
+
+        {/* Transaction Verification Modal */}
+        <TransactionVerificationModal
+          isOpen={isVerifying}
+          onClose={() => {}} // Will be handled by the modal itself when transaction completes
+          stepMessage={stepMessage}
+          verificationStep={verificationStep}
+          currentVerification={currentVerification}
+        />
       </div>
     </div>
   );
