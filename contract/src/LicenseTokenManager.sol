@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.26;
 
-import { ILicensingModule } from "@story-protocol/protocol-core/contracts/interfaces/modules/licensing/ILicensingModule.sol";
-import { ILicenseToken } from "@story-protocol/protocol-core/contracts/interfaces/ILicenseToken.sol";
-import { IPILicenseTemplate } from "@story-protocol/protocol-core/contracts/interfaces/modules/licensing/IPILicenseTemplate.sol";
+import { ILicensingModule } from "@storyprotocol/core/contracts/interfaces/modules/licensing/ILicensingModule.sol";
+import { ILicenseToken } from "@storyprotocol/core/contracts/interfaces/ILicenseToken.sol";
+import { IPILicenseTemplate } from "@storyprotocol/core/contracts/interfaces/modules/licensing/IPILicenseTemplate.sol";
 
 /**
  * @title LicenseTokenManager
@@ -44,7 +44,7 @@ contract LicenseTokenManager {
         uint256 amount,
         address receiver,
         uint256 maxMintingFee,
-        uint256 maxRevenueShare
+        uint32 maxRevenueShare
     ) external returns (uint256 startLicenseTokenId) {
         startLicenseTokenId = LICENSING_MODULE.mintLicenseTokens({
             licensorIpId: licensorIpId,

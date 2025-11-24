@@ -1,53 +1,57 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.26;
 
-import { IIPAccountRegistry } from "@story-protocol/protocol-core/contracts/interfaces/registries/IIPAccountRegistry.sol";
+import { IAccessController } from "@storyprotocol/core/contracts/interfaces/access/IAccessController.sol";
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 
 /**
  * @title IPAccountManager
- * @author Gemini Code Assist
- * @notice This contract provides a simplified and secure interface for managing
- * permissions on an IP Account using the Story Protocol IIPAccountRegistry.
- * It allows the owner of this contract to grant and revoke permissions for a
- * specific operator on a specific IP Account.
+ * @notice Provides a simplified interface for managing permissions on IP Accounts
+ * via Story Protocol's Access Controller.
  */
 contract IPAccountManager is Ownable {
-    IIPAccountRegistry public immutable IP_ACCOUNT_REGISTRY;
+    IAccessController public immutable ACCESS_CONTROLLER;
 
-    event PermissionGranted(address indexed ipAccount, address indexed operator, bytes32 indexed permission);
-    event PermissionRevoked(address indexed ipAccount, address indexed operator, bytes32 indexed permission);
+    event PermissionGranted(address indexed ipAccount, address indexed signer, address indexed to, bytes4 func, uint8 permission);
+    event PermissionRevoked(address indexed ipAccount, address indexed signer, address indexed to, bytes4 func);
 
     /**
-     * @param _ipAccountRegistry The address of the Story Protocol IIPAccountRegistry.
+     * @param _accessController The address of the Story Protocol Access Controller.
      * @param _initialOwner The initial owner of this contract.
      */
-    constructor(address _ipAccountRegistry, address _initialOwner) Ownable(_initialOwner) {
-        IP_ACCOUNT_REGISTRY = IIPAccountRegistry(_ipAccountRegistry);
+    constructor(address _accessController, address _initialOwner) Ownable(_initialOwner) {
+        ACCESS_CONTROLLER = IAccessController(_accessController);
     }
 
     /**
-     * @notice Grants a specific permission to an operator for a given IP account.
-     * @dev Only the owner of this contract can call this function. The IP Account
-     * itself must be owned by this contract.
-     * @param _ipAccount The IP Account to grant permission on.
-     * @param _operator The address that will be granted the permission.
-     * @param _permission The permission to grant (e.g., keccak256("PERMIT_MINT_LICENSE")).
+     * @notice Grants a specific permission to a signer for a given IP account.
+     * @param ipAccount The IP Account to grant permission on.
+     * @param signer The address that will be granted the permission.
+     * @param to The module/contract the signer can call.
+     * @param func The function selector of `to`.
+     * @param permission The permission level (0=ABSTAIN, 1=ALLOW, 2=DENY).
      */
-    function grantPermission(address _ipAccount, address _operator, bytes32 _permission) external onlyOwner {
-        IP_ACCOUNT_REGISTRY.setPermission(_ipAccount, _operator, _permission, true);
-        emit PermissionGranted(_ipAccount, _operator, _permission);
+    function grantPermission(
+        address ipAccount,
+        address signer,
+        address to,
+        bytes4 func,
+        uint8 permission
+    ) external onlyOwner {
+        ACCESS_CONTROLLER.setPermission(ipAccount, signer, to, func, permission);
+        emit PermissionGranted(ipAccount, signer, to, func, permission);
     }
 
     /**
-     * @notice Revokes a specific permission from an operator for a given IP account.
-     * @dev Only the owner of this contract can call this function.
-     * @param _ipAccount The IP Account to revoke permission on.
-     * @param _operator The address whose permission will be revoked.
-     * @param _permission The permission to revoke.
+     * @notice Revokes a specific permission (sets to ABSTAIN).
      */
-    function revokePermission(address _ipAccount, address _operator, bytes32 _permission) external onlyOwner {
-        IP_ACCOUNT_REGISTRY.setPermission(_ipAccount, _operator, _permission, false);
-        emit PermissionRevoked(_ipAccount, _operator, _permission);
+    function revokePermission(
+        address ipAccount,
+        address signer,
+        address to,
+        bytes4 func
+    ) external onlyOwner {
+        ACCESS_CONTROLLER.setPermission(ipAccount, signer, to, func, 0); // 0 = ABSTAIN
+        emit PermissionRevoked(ipAccount, signer, to, func);
     }
 }

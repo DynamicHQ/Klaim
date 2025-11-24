@@ -93,7 +93,14 @@ async function postJSON(path, body) {
       onUnauthorizedCallback();
     }
     
-    const message = (json && json.message) || res.statusText || 'API error';
+    // Extract error message from various possible formats
+    let message = 'API error';
+    if (json) {
+      message = json.message || json.error || res.statusText;
+    } else {
+      message = res.statusText;
+    }
+    
     const err = new Error(message);
     err.status = res.status;
     err.response = json;
@@ -124,7 +131,14 @@ async function getJSON(path) {
       onUnauthorizedCallback();
     }
     
-    const message = (json && json.message) || res.statusText || 'API error';
+    // Extract error message from various possible formats
+    let message = 'API error';
+    if (json) {
+      message = json.message || json.error || res.statusText;
+    } else {
+      message = res.statusText;
+    }
+    
     const err = new Error(message);
     err.status = res.status;
     err.response = json;
@@ -292,6 +306,35 @@ export async function readFileAsDataURL(file) {
   });
 }
 
+// Faucet endpoints
+
+/**
+ * Claim KIP tokens from the faucet
+ * @param {string} walletAddress - Ethereum wallet address
+ * @returns {Promise<Object>} Claim response with transaction hash and balance
+ */
+export async function claimTokens(walletAddress) {
+  return postJSON('/faucet/claim', { walletAddress });
+}
+
+/**
+ * Check if a wallet address is eligible to claim tokens
+ * @param {string} walletAddress - Ethereum wallet address
+ * @returns {Promise<Object>} Eligibility status
+ */
+export async function checkEligibility(walletAddress) {
+  return getJSON(`/faucet/eligibility/${walletAddress}`);
+}
+
+/**
+ * Get KIP token balance for a wallet address
+ * @param {string} walletAddress - Ethereum wallet address
+ * @returns {Promise<Object>} Balance information
+ */
+export async function getTokenBalance(walletAddress) {
+  return getJSON(`/faucet/balance/${walletAddress}`);
+}
+
 export default {
   // Auth management
   setAuthToken,
@@ -314,7 +357,14 @@ export default {
   purchaseIP,
   getMarketplaceListings,
   getUserIPs,
+<<<<<<< HEAD
   transferIPOwnership,
+=======
+  // Faucet endpoints
+  claimTokens,
+  checkEligibility,
+  getTokenBalance,
+>>>>>>> 0844788e83e739f1c56a49cfcf73347ed3ee11d4
   // Utility
   uploadToCloudinary,
   readFileAsDataURL,

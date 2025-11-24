@@ -2,21 +2,33 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+<<<<<<< HEAD
 import Image from 'next/image';
 import { FaSpinner, FaWallet, FaUpload, FaDownload, FaPaperPlane } from 'react-icons/fa';
 import { useAccount } from 'wagmi';
 import { getUserIPs, listOnMarketplace, transferIPOwnership } from '@/utils/api';
 import { transferIP } from '@/utils/wallet';
 import AuthGate from '@/components/AuthGate';
+=======
+import { FaSpinner, FaWallet, FaUpload, FaDownload } from 'react-icons/fa';
+import { getMyNFTs, listNFTOnMarketplace, getConnectedWallet, initializeStorage } from '@/utils/mockData';
+import TokenFaucet from '@/components/TokenFaucet';
+import { useWallet } from '@/hooks/useWallet';
+>>>>>>> 0844788e83e739f1c56a49cfcf73347ed3ee11d4
 
 function Profile() {
   const router = useRouter();
+<<<<<<< HEAD
   const { address, isConnected } = useAccount();
   
+=======
+  const { account: walletAddress, isConnected } = useWallet();
+>>>>>>> 0844788e83e739f1c56a49cfcf73347ed3ee11d4
   const [myNFTs, setMyNFTs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [listingNFT, setListingNFT] = useState(null);
   const [listPrice, setListPrice] = useState('');
+<<<<<<< HEAD
   const [transferNFT, setTransferNFT] = useState(null);
   const [transferAddress, setTransferAddress] = useState('');
 
@@ -26,6 +38,15 @@ function Profile() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [address]);
+=======
+
+  useEffect(() => {
+    initializeStorage();
+    if (walletAddress) {
+      fetchMyNFTs();
+    }
+  }, [walletAddress]);
+>>>>>>> 0844788e83e739f1c56a49cfcf73347ed3ee11d4
 
   const fetchMyNFTs = async () => {
     if (!address) return;
@@ -105,7 +126,16 @@ function Profile() {
     }
   };
 
+<<<<<<< HEAD
   if (!isConnected) {
+=======
+  const handleClaimSuccess = (response) => {
+    console.log('Tokens claimed successfully:', response);
+    // Optionally refresh NFTs or show a success message
+  };
+
+  if (!walletAddress || !isConnected) {
+>>>>>>> 0844788e83e739f1c56a49cfcf73347ed3ee11d4
     return (
       <div className="min-h-screen bg-base-200 pt-20">
         <div className="container mx-auto px-4 py-8">
@@ -140,6 +170,7 @@ function Profile() {
   }
 
   return (
+<<<<<<< HEAD
     <AuthGate>
       <div className="min-h-screen bg-base-200 pt-20">
         <div className="container mx-auto px-4 py-8">
@@ -152,6 +183,29 @@ function Profile() {
               Connected: {address?.slice(0, 6)}...{address?.slice(-4)}
             </p>
           </div>
+=======
+    <div className="min-h-screen bg-base-200 pt-20">
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold mb-2">My NFTs</h1>
+          <p className="text-base-content/70">
+            Your NFT collection
+          </p>
+          <p className="text-sm text-base-content/50 mt-2">
+            Connected: {walletAddress?.slice(0, 6)}...{walletAddress?.slice(-4)}
+          </p>
+        </div>
+>>>>>>> 0844788e83e739f1c56a49cfcf73347ed3ee11d4
+
+        {/* Token Faucet Component */}
+        {walletAddress && (
+          <div className="max-w-2xl mx-auto mb-8">
+            <TokenFaucet 
+              walletAddress={walletAddress} 
+              onClaimSuccess={handleClaimSuccess}
+            />
+          </div>
+        )}
 
         {myNFTs.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">

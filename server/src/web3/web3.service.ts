@@ -39,6 +39,8 @@ export class Web3Service implements OnModuleInit {
       'function approve(address spender, uint256 amount) returns (bool)',
       'function balanceOf(address account) view returns (uint256)',
       'function transfer(address to, uint256 amount) returns (bool)',
+      'function mint(address to, uint256 amount)',
+      'event TokensMinted(address indexed to, uint256 amount)',
     ];
 
     // Initialize contracts if addresses are provided
@@ -118,8 +120,12 @@ export class Web3Service implements OnModuleInit {
     const contract = this.ipMarketplaceContract.connect(wallet);
 
     const priceInWei = ethers.parseEther(price.toString());
+<<<<<<< HEAD
     // Cast to any and use the exact function signature so TypeScript won't complain about BaseContract typings
     const tx = await (contract as any)['listIP(uint256,uint256)'](tokenId, priceInWei);
+=======
+    const tx = await contract['listIP'](tokenId, priceInWei);
+>>>>>>> 0844788e83e739f1c56a49cfcf73347ed3ee11d4
     const receipt = await tx.wait();
 
     return {
@@ -140,7 +146,11 @@ export class Web3Service implements OnModuleInit {
     const wallet = new ethers.Wallet(privateKey, this.provider);
     const contract = this.ipMarketplaceContract.connect(wallet);
 
+<<<<<<< HEAD
     const tx = await (contract as any)['purchaseIP(bytes32)'](listingId);
+=======
+    const tx = await contract['purchaseIP'](listingId);
+>>>>>>> 0844788e83e739f1c56a49cfcf73347ed3ee11d4
     const receipt = await tx.wait();
 
     return {
@@ -155,8 +165,27 @@ export class Web3Service implements OnModuleInit {
       throw new Error('IPToken contract not initialized');
     }
 
-    const balance = await this.ipTokenContract.balanceOf(address);
-    return ethers.formatEther(balance);
+    // Validate address format
+    if (!ethers.isAddress(address)) {
+      throw new Error('Invalid Ethereum address format');
+    }
+
+    try {
+      const balance = await this.ipTokenContract.balanceOf(address);
+      return ethers.formatEther(balance);
+    } catch (error) {
+      // Handle specific error cases
+      if (error.code === 'NETWORK_ERROR') {
+        throw new Error('Network error: Unable to connect to blockchain');
+      } else if (error.code === 'CALL_EXCEPTION') {
+        throw new Error('Contract call failed: Unable to query balance');
+      } else if (error.code === 'TIMEOUT') {
+        throw new Error('Request timeout: Blockchain query took too long');
+      } else {
+        // Generic error with original message
+        throw new Error(`Failed to query token balance: ${error.message || 'Unknown error'}`);
+      }
+    }
   }
 
   // Monitor contract events
@@ -219,5 +248,51 @@ export class Web3Service implements OnModuleInit {
   // Get provider
   getProvider(): ethers.JsonRpcProvider {
     return this.provider;
+  }
+
+  /**
+   * @notice Mints IP tokens to a specified address using the deployer's private key.
+   * @param toAddress The address to mint tokens to.
+   * @param amount The amount of tokens to mint (human-readable, e.g., "100").
+   * @param privateKey The private key of the token owner/minter.
+   * @returns Transaction receipt.
+   */
+  async mintIPToken(
+    toAddress: string,
+    amount: string, // amount in human-readable format, e.g., "100"
+    privateKey: string,
+  ): Promise<any> {
+    if (!this.ipTokenContract) {
+      throw new Error('IPToken contract not initialized');
+    }
+
+    // Validate address format
+    if (!ethers.isAddress(toAddress)) {
+      throw new Error('Invalid recipient address format');
+    }
+
+    try {
+      const wallet = new ethers.Wallet(privateKey, this.provider);
+      const contract = this.ipTokenContract.connect(wallet);
+      const amountInWei = ethers.parseEther(amount); // Assuming 18 decimals for IPToken
+      const tx = await contract['mint'](toAddress, amountInWei);
+      return await tx.wait();
+    } catch (error) {
+      // Handle specific error cases
+      if (error.code === 'INSUFFICIENT_FUNDS') {
+        throw new Error('Insufficient gas: Deployer wallet has insufficient funds for gas');
+      } else if (error.code === 'NETWORK_ERROR') {
+        throw new Error('Network error: Unable to connect to blockchain');
+      } else if (error.code === 'CALL_EXCEPTION') {
+        throw new Error('Transaction failed: Contract call reverted');
+      } else if (error.code === 'TIMEOUT') {
+        throw new Error('Transaction timeout: Blockchain transaction took too long');
+      } else if (error.message && error.message.includes('Ownable: caller is not the owner')) {
+        throw new Error('Authorization failed: Caller is not the token contract owner');
+      } else {
+        // Generic error with original message
+        throw new Error(`Failed to mint tokens: ${error.message || 'Unknown error'}`);
+      }
+    }
   }
 }

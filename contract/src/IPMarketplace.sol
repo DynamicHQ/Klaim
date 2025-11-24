@@ -4,7 +4,7 @@ pragma solidity ^0.8.26;
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { IERC721 } from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-import { IIPAssetRegistry } from "@story-protocol/protocol-core/contracts/interfaces/registries/IIPAssetRegistry.sol";
+import { IIPAssetRegistry } from "@storyprotocol/core/contracts/interfaces/registries/IIPAssetRegistry.sol";
 
 /**
  * @title IPMarketplace
@@ -27,7 +27,7 @@ contract IPMarketplace is ReentrancyGuard {
     mapping(bytes32 => Listing) public listings;
     
     event IPListed(bytes32 indexed listingId, address indexed seller, address indexed ipId, uint256 price);
-    event IPSold(bytes32 indexed listingId, address indexed buyer, address indexed seller, address indexed ipId, uint256 price);
+    event IPSold(bytes32 indexed listingId, address indexed buyer, address indexed seller, address ipId, uint256 price);
     event ListingCancelled(bytes32 indexed listingId);
     
     constructor(address _ipToken, address _ipAssetRegistry, address _nftContract) {

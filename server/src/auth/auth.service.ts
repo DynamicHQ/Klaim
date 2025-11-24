@@ -6,8 +6,8 @@ import { JwtService } from '@nestjs/jwt';
 import { ethers } from 'ethers'; // The core library for crypto operations
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
-import { User } from 'src/user/schema/user.schema';
-import { LoginDto } from 'src/user/dto/login.dto';
+import { User } from '../user/schema/user.schema';
+import { LoginDto } from '../user/dto/login.dto';
 
 @Injectable()
 export class AuthService {
@@ -21,27 +21,26 @@ export class AuthService {
     const { wallet, signature } = loginDto;
     const lowerCaseWallet = wallet.toLowerCase();
     
-    const user = await this.userModel.findOne({ wallet: lowerCaseWallet }).exec();
+    const user = await this.userModel.findOne({ walletAddress: lowerCaseWallet }).exec();
 
     if (!user) {
-      throw new UnauthorizedException('User not found. Please request a nonce first to register/login.');
+      throw new UnauthorizedException('User not found. Please register first.');
     }
 
-    const signedMessage = `Welcome to Klaimit! Sign this nonce to login: ${user.nonce}`;
+    // For now, we'll use a simple message verification without nonce
+    // In a production system, you'd want to implement proper nonce-based authentication
+    const signedMessage = `Welcome to Klaimit! Sign this message to login.`;
 
     try {
         const recoveredAddress = ethers.verifyMessage(signedMessage, signature);
         
         if (recoveredAddress.toLowerCase() !== lowerCaseWallet) {
-          throw new UnauthorizedException('Invalid signature or nonce mismatch.');
+          throw new UnauthorizedException('Invalid signature.');
         }
-        
-        await this.userService.findOrCreateAndSetNonce(user.wallet); 
-
 
         const payload = { 
             id: user.id.toString(), 
-            wallet: user.wallet      // Wallet address
+            walletAddress: user.walletAddress      // Wallet address
         }; 
         
         return {

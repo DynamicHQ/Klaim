@@ -14,28 +14,22 @@ export class UserService {
   constructor(@InjectModel(User.name) private userModel: Model<User>) {}
 
   async findOrCreateAndSetNonce(wallet: string): Promise<string> {
-    const newNonce = generateNonce();
     const lowerCaseWallet = wallet.toLowerCase();
 
     try {
       // 1. TRY TO FIND THE USER
-      let user = await this.userModel.findOne({ wallet: lowerCaseWallet }).exec();
+      let user = await this.userModel.findOne({ walletAddress: lowerCaseWallet }).exec();
 
-      if (user) {
-        // 2a. USER FOUND: Update the existing user's nonce
-        user.nonce = newNonce;
-        await user.save();
-      } else {
-        // 2b. USER NOT FOUND: Create the new user ("sign-up")
+      if (!user) {
+        // 2. USER NOT FOUND: Create the new user ("sign-up")
         user = await this.userModel.create({
-          wallet: lowerCaseWallet,
-          nonce: newNonce,
-          profileName: 'Klaimit User',
+          walletAddress: lowerCaseWallet,
+          username: 'Klaimit User',
         });
       }
 
-      // 3. Return the new nonce
-      return user.nonce;
+      // 3. Return a simple nonce (in production, you'd want to store and manage this properly)
+      return generateNonce();
       
     } catch (error) {
       // Catch any database or save errors (e.g., connection issues)
@@ -53,7 +47,7 @@ export class UserService {
 
   async findUserByWallet(wallet: string): Promise<User | null> {
     const lowerCaseWallet = wallet.toLowerCase();
-    return this.userModel.findOne({ wallet: lowerCaseWallet }).exec();
+    return this.userModel.findOne({ walletAddress: lowerCaseWallet }).exec();
   }
 
   async syncWallet(walletAddress: string): Promise<any> {
@@ -64,14 +58,13 @@ export class UserService {
     const lowerCaseWallet = walletAddress.toLowerCase();
     
     try {
-      let user = await this.userModel.findOne({ wallet: lowerCaseWallet }).exec();
+      let user = await this.userModel.findOne({ walletAddress: lowerCaseWallet }).exec();
 
       if (!user) {
         // Create new user
         user = await this.userModel.create({
-          wallet: lowerCaseWallet,
-          nonce: generateNonce(),
-          profileName: 'Klaimit User',
+          walletAddress: lowerCaseWallet,
+          username: 'Klaimit User',
         });
       }
 
@@ -79,8 +72,8 @@ export class UserService {
         success: true,
         user: {
           id: user._id,
-          wallet: user.wallet,
-          profileName: user.profileName,
+          walletAddress: user.walletAddress,
+          username: user.username,
         },
       };
     } catch (error) {
@@ -94,16 +87,15 @@ export class UserService {
     
     try {
       // Check if user already exists
-      const existingUser = await this.userModel.findOne({ wallet: lowerCaseWallet }).exec();
+      const existingUser = await this.userModel.findOne({ walletAddress: lowerCaseWallet }).exec();
       if (existingUser) {
         throw new InternalServerErrorException('User already exists with this wallet');
       }
 
       // Create new user
       const user = await this.userModel.create({
-        wallet: lowerCaseWallet,
-        nonce: generateNonce(),
-        profileName: username || 'Klaimit User',
+        walletAddress: lowerCaseWallet,
+        username: username || 'Klaimit User',
       });
 
       return {
@@ -111,8 +103,8 @@ export class UserService {
         message: 'User created successfully',
         user: {
           id: user._id,
-          wallet: user.wallet,
-          profileName: user.profileName,
+          walletAddress: user.walletAddress,
+          username: user.username,
         },
       };
     } catch (error) {
@@ -125,15 +117,15 @@ export class UserService {
     const lowerCaseWallet = walletAddress.toLowerCase();
     
     try {
-      const user = await this.userModel.findOne({ wallet: lowerCaseWallet }).exec();
+      const user = await this.userModel.findOne({ walletAddress: lowerCaseWallet }).exec();
       
       if (!user) {
         throw new InternalServerErrorException('User not found');
       }
 
-      // Update profile name if provided
-      if (username && username !== user.profileName) {
-        user.profileName = username;
+      // Update username if provided
+      if (username && username !== user.username) {
+        user.username = username;
         await user.save();
       }
 
@@ -142,8 +134,8 @@ export class UserService {
         message: 'Login successful',
         user: {
           id: user._id,
-          wallet: user.wallet,
-          profileName: user.profileName,
+          walletAddress: user.walletAddress,
+          username: user.username,
         },
       };
     } catch (error) {

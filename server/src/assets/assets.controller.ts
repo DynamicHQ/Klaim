@@ -68,4 +68,5 @@ export class AssetsController {
   async findById(@Param('id') id: string) {
     return this.assetsService.findById(id);
   }
+
 }

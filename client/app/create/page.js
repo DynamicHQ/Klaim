@@ -3,13 +3,18 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { FaUpload, FaSpinner, FaCheck, FaWallet } from 'react-icons/fa';
+<<<<<<< HEAD
 import { useAccount } from 'wagmi';
 import { storyProtocolService, formatMetadataForStoryProtocol } from '@/utils/storyProtocol';
 import AuthGate from '@/components/AuthGate';
+=======
+import { useWallet } from '@/hooks/useWallet';
+import { createAsset } from '@/utils/api';
+>>>>>>> 0844788e83e739f1c56a49cfcf73347ed3ee11d4
 
 function CreateNFT() {
   const router = useRouter();
-  const { address, isConnected } = useAccount();
+  const { account: address, isConnected } = useWallet();
 
   const [formData, setFormData] = useState({
     title: '',
