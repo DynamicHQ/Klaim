@@ -4,13 +4,24 @@ import { useState, useEffect } from 'react';
 import Link from "next/link"
 import Image from "next/image"
 import { FaUser, FaStore, FaInfoCircle, FaQuestionCircle, FaSignOutAlt, FaWallet, FaSpinner, FaExclamationTriangle } from "react-icons/fa";
-import { useAccount } from 'wagmi';
 import { useAuth } from '@/contexts/AuthContext';
+import { useWallet } from '@/hooks/useWallet';
 import { useKIPBalance } from '@/hooks/useKIPBalance';
 
+/**
+ * Navigation Bar Component with Dynamic CTA and Balance Display
+ * 
+ * This component provides the main navigation interface featuring dynamic
+ * call-to-action buttons based on authentication and wallet connection status,
+ * real-time KIP token balance display, theme switching functionality, and
+ * responsive dropdown navigation. It implements a three-tier CTA system:
+ * unauthenticated users see "Get Started", authenticated users without wallets
+ * see "Connect Wallet", and fully connected users see balance display with
+ * action buttons and comprehensive navigation options.
+ */
 export default function Navbar() {
-  const { address, isConnected } = useAccount();
-  const { logout } = useAuth();
+  const { isAuthenticated, logout } = useAuth();
+  const { account: address, isConnected, connectWallet } = useWallet();
   const [theme, setTheme] = useState('light');
   const { formattedBalance, loading: balanceLoading, error: balanceError } = useKIPBalance(address);
 
@@ -23,11 +34,19 @@ export default function Navbar() {
     }
   }, []);
 
+  // User logout handler with authentication cleanup
   const handleDisconnect = () => {
     logout();
   };
 
-  // Toggle theme and save to localStorage
+  /**
+   * Theme toggle handler with localStorage persistence.
+   * 
+   * This function manages theme switching between light and dark modes
+   * with automatic persistence to localStorage and immediate DOM updates
+   * for instant visual feedback. It ensures theme preferences are
+   * maintained across browser sessions and page reloads.
+   */
   const handleThemeToggle = () => {
     const newTheme = theme === 'light' ? 'dark' : 'light';
     setTheme(newTheme);
@@ -43,7 +62,7 @@ export default function Navbar() {
         </Link>
       </div>
       <div className="flex gap-2 md:gap-4">
-        {!isConnected ? (
+        {!isAuthenticated ? (
           <Link 
             href="/login"
             className="px-8 py-4 btn outline-main text-main btn-outline btn-md rounded-md hover:bg-main hover:text-white"
@@ -51,8 +70,32 @@ export default function Navbar() {
             <FaWallet className="w-4 h-4" />
             Get Started
           </Link>
+        ) : !isConnected ? (
+          <button 
+            onClick={connectWallet}
+            className="px-8 py-4 btn bg-main text-white btn-md rounded-md hover:bg-main/90"
+          >
+            <FaWallet className="w-4 h-4" />
+            Connect Wallet
+          </button>
         ) : (
           <div className="flex items-center gap-1 md:gap-2">
+            {/* Action Buttons - only show on larger screens */}
+            <div className="hidden lg:flex gap-2">
+              <Link 
+                href="/create"
+                className="btn btn-primary btn-sm"
+              >
+                Create
+              </Link>
+              <Link 
+                href="/marketplace"
+                className="btn btn-outline btn-sm"
+              >
+                Marketplace
+              </Link>
+            </div>
+
             {/* KIP Balance Display */}
             <div 
               className="flex items-center gap-1 px-2 md:px-3 py-1 md:py-2 bg-primary/10 rounded-lg"
@@ -126,6 +169,29 @@ export default function Navbar() {
       <ul
         tabIndex="-1"
         className="menu menu-sm dropdown-content bg-base-100 rounded-box z-1 mt-3 w-52 p-2 shadow md:w-100 md:menu-md">
+        {isAuthenticated && isConnected && (
+          <>
+            <li className="lg:hidden">
+              <a href="/create">
+                <div className="flex items-center gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                  Create
+                </div>
+              </a>
+            </li>
+            <li className="lg:hidden">
+              <a href="/marketplace">
+                <div className="flex items-center gap-2">
+                  <FaStore />
+                  Marketplace
+                </div>
+              </a>
+            </li>
+            <div className="divider lg:hidden"></div>
+          </>
+        )}
         <li>
           <a href="/profile">
            <div className="flex items-center gap-2">
@@ -158,12 +224,12 @@ export default function Navbar() {
             </div>
           </a>
         </li>
-        {isConnected && (
+        {isAuthenticated && (
           <li>
             <a onClick={handleDisconnect}>
               <div className="flex items-center gap-2">
                 <FaSignOutAlt />
-                Disconnect
+                {isConnected ? 'Disconnect' : 'Logout'}
               </div>
             </a>
           </li>

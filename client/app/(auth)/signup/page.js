@@ -2,9 +2,27 @@
 import { useState } from 'react';
 import { FaWallet } from 'react-icons/fa';
 
+/**
+ * User Signup Page Component
+ * 
+ * This component provides a user registration interface with wallet connection
+ * functionality for creating new accounts on the Klaim platform. It implements
+ * a simplified signup flow with username collection and MetaMask wallet
+ * connection integration. The component includes proper loading states,
+ * error handling, and navigation links to the login page for existing users.
+ */
 export default function Signup() {
     const [isConnecting, setIsConnecting] = useState(false);
 
+    /**
+     * Wallet connection handler for signup process.
+     * 
+     * This function manages MetaMask wallet connection during the signup
+     * process including permission requests, connection state management,
+     * and user feedback. It provides proper error handling for missing
+     * MetaMask installations and connection failures while maintaining
+     * loading states for better user experience.
+     */
     const handleConnectWallet = async () => {
         setIsConnecting(true);
         try {

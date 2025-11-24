@@ -2,6 +2,16 @@
 
 import { FaGithub, FaBook, FaCode, FaShieldAlt, FaCube, FaNetworkWired } from 'react-icons/fa';
 
+/**
+ * Technical Documentation Page Component
+ * 
+ * This component provides comprehensive technical documentation for the Klaim
+ * platform including architecture overview, protocol explanations, API references,
+ * and implementation guides. It features organized sections covering blockchain
+ * integration, Story Protocol implementation, security measures, and development
+ * resources with visual statistics and interactive navigation elements for
+ * developers and technical users seeking detailed platform information.
+ */
 export default function Docs() {
   return (
     <div className="min-h-screen bg-base-200 pt-20 pb-12">

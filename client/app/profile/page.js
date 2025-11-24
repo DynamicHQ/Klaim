@@ -10,6 +10,17 @@ import { transferIP } from '@/utils/wallet';
 import AuthGate from '@/components/AuthGate';
 import TokenFaucet from '@/components/TokenFaucet';
 
+/**
+ * User Profile and IP Asset Management Component
+ * 
+ * This component provides a comprehensive user profile interface for managing
+ * owned IP assets including viewing, listing on marketplace, and transferring
+ * ownership. It features integrated token faucet functionality for testnet
+ * token acquisition, modal-based interfaces for asset management operations,
+ * and real-time updates of asset status. The component implements proper
+ * authentication gating and wallet connection requirements with fallback
+ * interfaces for unauthenticated users.
+ */
 function Profile() {
   const router = useRouter();
   const { account: address, isConnected } = useWallet();
@@ -28,6 +39,14 @@ function Profile() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [address]);
 
+  /**
+   * User IP assets fetcher with error handling and loading states.
+   * 
+   * This function retrieves all IP assets owned by the connected wallet
+   * address from the backend API. It provides proper loading state management
+   * and error handling while ensuring the user's asset collection is
+   * accurately displayed with current ownership and listing status information.
+   */
   const fetchMyNFTs = async () => {
     if (!address) return;
     
@@ -42,6 +61,14 @@ function Profile() {
     }
   };
 
+  /**
+   * Marketplace listing handler with price validation and state updates.
+   * 
+   * This function manages the complete marketplace listing process including
+   * price validation, API communication, and local state updates. It provides
+   * user feedback throughout the listing process and updates the local asset
+   * display to reflect the new listing status without requiring a full refresh.
+   */
   const handleListNFT = async () => {
     if (!listingNFT || !listPrice) return;
 
@@ -67,6 +94,15 @@ function Profile() {
     }
   };
 
+  /**
+   * IP asset ownership transfer handler with address validation.
+   * 
+   * This function manages the complete ownership transfer process including
+   * recipient address validation, blockchain transaction execution, and
+   * local state cleanup. It removes transferred assets from the user's
+   * collection display and provides comprehensive feedback throughout
+   * the transfer process with proper error handling.
+   */
   const handleTransferNFT = async () => {
     if (!transferNFT || !transferAddress) return;
 
@@ -90,6 +126,7 @@ function Profile() {
     }
   };
 
+  // Token faucet success callback for handling successful token claims
   const handleClaimSuccess = (response) => {
     console.log('Tokens claimed successfully:', response);
     // Optionally refresh NFTs or show a success message

@@ -4,6 +4,18 @@ import { useState, useEffect, useCallback } from 'react';
 import { getIPTBalance } from '@/utils/contracts';
 import { useBalanceRefresh } from '@/contexts/BalanceContext';
 
+/**
+ * Custom hook for managing KIP token balance display and caching.
+ * 
+ * This hook provides real-time KIP token balance management with intelligent caching,
+ * automatic refresh capabilities, and integration with the global balance refresh system.
+ * It handles loading states, error scenarios, and provides formatted balance display
+ * suitable for UI components. The hook implements a 30-second cache duration to
+ * minimize unnecessary blockchain calls while ensuring users see up-to-date balances.
+ * 
+ * @param {string} address - The wallet address to fetch balance for
+ * @returns {Object} Balance state including formatted balance, loading state, and refresh function
+ */
 export const useKIPBalance = (address) => {
   const [balance, setBalance] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -15,6 +27,15 @@ export const useKIPBalance = (address) => {
   // Cache duration: 30 seconds
   const CACHE_DURATION = 30 * 1000;
 
+  /**
+   * Core balance fetching function with caching and error handling.
+   * 
+   * This function manages the complete balance retrieval process including cache validation,
+   * blockchain interaction, and state management. It implements intelligent caching to
+   * reduce API calls while providing force refresh capabilities for immediate updates.
+   * The function handles various error scenarios gracefully and maintains the last known
+   * balance value during temporary failures to provide better user experience.
+   */
   const fetchBalance = useCallback(async (forceRefresh = false) => {
     if (!address) {
       setBalance(null);
@@ -45,7 +66,7 @@ export const useKIPBalance = (address) => {
     }
   }, [address, lastUpdated]);
 
-  // Debounced refresh to prevent excessive API calls
+  // Debounced refresh to prevent excessive API calls during rapid updates
   const debouncedRefresh = useCallback(() => {
     const timeoutId = setTimeout(() => {
       fetchBalance(true);
@@ -59,7 +80,7 @@ export const useKIPBalance = (address) => {
     fetchBalance();
   }, [fetchBalance]);
 
-  // Manual refresh function
+  // Manual refresh function for immediate balance updates
   const refetch = useCallback(() => {
     return fetchBalance(true);
   }, [fetchBalance]);
@@ -75,7 +96,15 @@ export const useKIPBalance = (address) => {
     }
   }, [address, registerRefreshCallback, debouncedRefresh]);
 
-  // Format balance for display
+  /**
+   * Balance formatting utility for user-friendly display.
+   * 
+   * This function converts raw balance values into human-readable formats with
+   * appropriate decimal places and unit suffixes. It handles edge cases like
+   * zero balances, very small amounts, and large numbers with K/M suffixes.
+   * The formatting ensures consistent display across different UI components
+   * while maintaining precision for meaningful amounts.
+   */
   const formatBalance = useCallback((value) => {
     if (value === null || value === undefined) return null;
     

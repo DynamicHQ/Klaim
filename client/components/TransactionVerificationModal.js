@@ -2,6 +2,17 @@
 
 import { FaSpinner, FaShieldAlt, FaCheckCircle, FaExclamationTriangle, FaTimes } from 'react-icons/fa';
 
+/**
+ * Transaction Verification Modal Component
+ * 
+ * This component provides a comprehensive modal interface for displaying
+ * transaction verification progress with step-by-step visual feedback.
+ * It features progress tracking through verification stages, detailed
+ * transaction information display, appropriate icons and messaging for
+ * each verification step, and accessibility features including ARIA labels
+ * and keyboard navigation. The modal guides users through the security
+ * verification process with clear visual indicators and helpful instructions.
+ */
 export default function TransactionVerificationModal({ 
   isOpen, 
   onClose, 
@@ -11,6 +22,7 @@ export default function TransactionVerificationModal({
 }) {
   if (!isOpen || !stepMessage) return null;
 
+  // Dynamic icon selector based on verification step status and message type
   const getStepIcon = () => {
     switch (stepMessage.type) {
       case 'success':
@@ -24,6 +36,14 @@ export default function TransactionVerificationModal({
     }
   };
 
+  /**
+   * Progress step generator with completion status tracking.
+   * 
+   * This function creates a visual progress indicator showing the current
+   * verification step and completion status of previous steps. It provides
+   * clear visual feedback about the verification process progress and
+   * helps users understand where they are in the security workflow.
+   */
   const getProgressSteps = () => {
     const steps = [
       { key: 'generated', label: 'Verification Required', completed: false },

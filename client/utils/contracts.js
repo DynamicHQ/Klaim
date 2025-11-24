@@ -1,5 +1,16 @@
 import { ethers } from 'ethers';
 
+/**
+ * Smart Contract Integration Utilities for Klaim Marketplace
+ * 
+ * This module provides comprehensive smart contract interaction utilities for the
+ * Klaim marketplace including contract address management, ABI definitions, and
+ * high-level transaction functions. It handles all blockchain interactions for
+ * IP creation, marketplace operations, and KIP token management with proper error
+ * handling and transaction parsing. The utilities abstract complex blockchain
+ * operations into simple function calls while maintaining full transaction transparency.
+ */
+
 // Contract addresses (update these after deployment)
 export const CONTRACT_ADDRESSES = {
   IP_CREATOR: process.env.NEXT_PUBLIC_IP_CREATOR_ADDRESS || '',
@@ -50,7 +61,7 @@ export const IP_TOKEN_ABI = [
   'event TokensMinted(address indexed to, uint256 amount)',
 ];
 
-// Get provider and signer
+// MetaMask provider initialization with error handling for missing wallet
 export const getProvider = () => {
   if (typeof window === 'undefined' || !window.ethereum) {
     throw new Error('MetaMask not installed');
@@ -58,12 +69,13 @@ export const getProvider = () => {
   return new ethers.BrowserProvider(window.ethereum);
 };
 
+// Wallet signer retrieval for transaction signing
 export const getSigner = async () => {
   const provider = getProvider();
   return await provider.getSigner();
 };
 
-// Contract instances
+// IP Creator contract instance with configuration validation
 export const getIPCreatorContract = async () => {
   if (!CONTRACT_ADDRESSES.IP_CREATOR) {
     throw new Error('IP Creator contract address not configured');
@@ -72,6 +84,7 @@ export const getIPCreatorContract = async () => {
   return new ethers.Contract(CONTRACT_ADDRESSES.IP_CREATOR, IP_CREATOR_ABI, signer);
 };
 
+// IP Marketplace contract instance for trading operations
 export const getIPMarketplaceContract = async () => {
   if (!CONTRACT_ADDRESSES.IP_MARKETPLACE) {
     throw new Error('IP Marketplace contract address not configured');
@@ -80,6 +93,7 @@ export const getIPMarketplaceContract = async () => {
   return new ethers.Contract(CONTRACT_ADDRESSES.IP_MARKETPLACE, IP_MARKETPLACE_ABI, signer);
 };
 
+// KIP Token contract instance for balance and transfer operations
 export const getIPTokenContract = async () => {
   if (!CONTRACT_ADDRESSES.IP_TOKEN) {
     throw new Error('IP Token contract address not configured');
@@ -88,21 +102,32 @@ export const getIPTokenContract = async () => {
   return new ethers.Contract(CONTRACT_ADDRESSES.IP_TOKEN, IP_TOKEN_ABI, signer);
 };
 
-// Helper functions
+// Metadata hash calculation for IP asset verification
 export const calculateMetadataHash = (metadata) => {
   const metadataString = JSON.stringify(metadata);
   return ethers.keccak256(ethers.toUtf8Bytes(metadataString));
 };
 
+// KIP token amount formatting utilities for blockchain transactions
 export const formatIPTAmount = (amount) => {
   return ethers.parseEther(amount.toString());
 };
 
+// KIP token amount parsing for display purposes
 export const parseIPTAmount = (amount) => {
   return ethers.formatEther(amount);
 };
 
-// Contract interactions
+/**
+ * High-level IP asset creation with Story Protocol integration.
+ * 
+ * This function handles the complete IP asset creation process including metadata
+ * hash calculation, blockchain transaction execution, and event parsing. It
+ * interacts with the IPCreator contract to mint NFTs and register them as IP
+ * assets on Story Protocol with proper licensing. The function provides
+ * comprehensive error handling and returns detailed transaction information
+ * including token IDs and IP asset addresses.
+ */
 export const createIPOnChain = async (recipient, metadataURI, metadata, licenseURI) => {
   const contract = await getIPCreatorContract();
   const metadataHash = calculateMetadataHash(metadata);
@@ -141,6 +166,14 @@ export const createIPOnChain = async (recipient, metadataURI, metadata, licenseU
   };
 };
 
+/**
+ * Marketplace listing creation with event parsing.
+ * 
+ * This function handles IP asset listing on the marketplace including price
+ * formatting, transaction execution, and listing ID extraction from events.
+ * It provides a complete listing workflow with proper error handling and
+ * returns the generated listing ID for tracking purposes.
+ */
 export const listIPOnChain = async (tokenId, price) => {
   const contract = await getIPMarketplaceContract();
   const priceInWei = formatIPTAmount(price);
@@ -170,6 +203,7 @@ export const listIPOnChain = async (tokenId, price) => {
   };
 };
 
+// Marketplace listing cancellation with transaction hash return
 export const cancelListingOnChain = async (listingId) => {
   const contract = await getIPMarketplaceContract();
   const tx = await contract.cancelListing(listingId);
@@ -180,6 +214,15 @@ export const cancelListingOnChain = async (listingId) => {
   };
 };
 
+/**
+ * Secure IP asset purchase with token approval and transfer.
+ * 
+ * This function handles the complete purchase workflow including KIP token
+ * approval for the marketplace contract and the actual purchase transaction.
+ * It implements a two-step process to ensure proper token handling and
+ * provides comprehensive error handling for both approval and purchase
+ * operations with detailed transaction information.
+ */
 export const purchaseIPOnChain = async (listingId, price) => {
   // First approve IPT tokens
   const tokenContract = await getIPTokenContract();
@@ -198,12 +241,21 @@ export const purchaseIPOnChain = async (listingId, price) => {
   };
 };
 
+// KIP token balance retrieval with automatic formatting for display
 export const getIPTBalance = async (address) => {
   const contract = await getIPTokenContract();
   const balance = await contract.balanceOf(address);
   return parseIPTAmount(balance);
 };
 
+/**
+ * Complete KIP token information retrieval.
+ * 
+ * This function fetches comprehensive token metadata including name, symbol,
+ * decimals, and total supply from the KIP token contract. It provides all
+ * necessary token information for display and validation purposes with
+ * proper formatting for user interfaces.
+ */
 export const getKIPTokenInfo = async () => {
   const contract = await getIPTokenContract();
   const [name, symbol, decimals, totalSupply] = await Promise.all([
@@ -221,12 +273,14 @@ export const getKIPTokenInfo = async () => {
   };
 };
 
+// KIP token allowance checking for marketplace approvals
 export const checkIPTAllowance = async (owner, spender) => {
   const contract = await getIPTokenContract();
   const allowance = await contract.allowance(owner, spender);
   return parseIPTAmount(allowance);
 };
 
+// Marketplace listing details retrieval with formatted price information
 export const getListingDetails = async (listingId) => {
   const contract = await getIPMarketplaceContract();
   const listing = await contract.listings(listingId);

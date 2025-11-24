@@ -1,14 +1,22 @@
-// Frontend API helpers for backend endpoints
+/**
+ * Frontend API Utilities for Backend Communication
+ * 
+ * This module provides comprehensive API utilities for communicating with the
+ * Klaim backend including authentication management, asset operations, marketplace
+ * interactions, and user management. It implements JWT token handling, automatic
+ * request authentication, error handling, and response parsing. The utilities
+ * abstract complex API interactions into simple function calls while maintaining
+ * proper error handling and authentication state management throughout the application.
+ */
+
+// Backend API endpoint configuration with environment variable support
 const API_ENDPOINT = process.env.NEXT_PUBLIC_API_ENDPOINT || 'http://localhost:3001';
 
-// JWT token storage
+// JWT token storage and unauthorized callback management
 let authToken = null;
 let onUnauthorizedCallback = null;
 
-/**
- * Set JWT token for authenticated requests
- * @param {string} token - JWT token
- */
+// JWT token setter with localStorage persistence for authenticated requests
 export function setAuthToken(token) {
   authToken = token;
   if (typeof window !== 'undefined') {
@@ -192,6 +200,15 @@ export async function signupUser(username, walletAddress) {
  * @param {string} walletAddress - The creator's wallet address.
  * @returns {Promise<object>} The final response from the createIp call.
  */
+/**
+ * Comprehensive asset creation with IPFS upload and blockchain integration.
+ * 
+ * This function orchestrates the complete asset creation process including
+ * image upload to Pinata IPFS, metadata formatting, and backend API
+ * communication for NFT minting and IP registration. It handles the complex
+ * workflow of transforming user input into blockchain-ready assets while
+ * providing proper error handling and progress tracking throughout the process.
+ */
 export async function createAsset(assetData, walletAddress) {
   // Step 1: Upload image to get the URL. We'll use the Pinata function directly.
   // Note: In a larger app, this uploader could also be part of the api utility.
@@ -246,6 +263,15 @@ export async function listOnMarketplace(nftContract, tokenId, price, seller) {
   });
 }
 
+/**
+ * Marketplace purchase execution with ownership transfer.
+ * 
+ * This function handles the complete IP asset purchase process including
+ * payment processing, ownership transfer, and marketplace state updates.
+ * It communicates with the backend to execute the purchase transaction
+ * and update all relevant records while providing comprehensive error
+ * handling and transaction confirmation feedback.
+ */
 export async function purchaseIP(listingId, buyer) {
   return postJSON('/assets/marketplace/purchase', {
     listingId,
@@ -253,10 +279,12 @@ export async function purchaseIP(listingId, buyer) {
   });
 }
 
+// Marketplace listings retrieval for browsing and search functionality
 export async function getMarketplaceListings() {
   return getJSON('/assets/marketplace');
 }
 
+// User-owned IP assets retrieval for profile and management interfaces
 export async function getUserIPs(walletAddress) {
   return getJSON(`/assets/user/${walletAddress}`);
 }

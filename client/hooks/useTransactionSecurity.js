@@ -10,6 +10,18 @@ import {
 } from '@/utils/transactionSecurity';
 import { useBalanceRefresh } from '@/contexts/BalanceContext';
 
+/**
+ * Custom hook for secure marketplace transaction processing with message signing.
+ * 
+ * This hook provides a comprehensive security layer for all marketplace transactions
+ * by implementing mandatory message signing verification. It orchestrates the complete
+ * security flow including message generation, user signature collection, cryptographic
+ * validation, and transaction execution. The hook prevents bot attacks by requiring
+ * human interaction for each transaction and provides detailed progress tracking
+ * with user-friendly feedback throughout the verification process.
+ * 
+ * @returns {Object} Transaction security interface with execution function and state
+ */
 export const useTransactionSecurity = () => {
   const { address } = useAccount();
   const { triggerBalanceRefresh } = useBalanceRefresh();
@@ -18,6 +30,16 @@ export const useTransactionSecurity = () => {
   const [error, setError] = useState(null);
   const [currentVerification, setCurrentVerification] = useState(null);
 
+  /**
+   * Core secure transaction execution function with multi-step verification.
+   * 
+   * This function implements the complete security workflow for marketplace transactions
+   * including message generation with unique nonces, user signature collection through
+   * MetaMask, cryptographic validation, and final transaction execution. It provides
+   * comprehensive error handling, progress tracking, and automatic balance refresh
+   * upon successful completion. The function ensures no transaction can proceed
+   * without proper user verification, effectively preventing automated bot attacks.
+   */
   const executeSecureTransaction = useCallback(async (transactionOptions, transactionFn) => {
     if (!address) {
       throw new Error('Wallet not connected');
@@ -75,10 +97,20 @@ export const useTransactionSecurity = () => {
     }
   }, [address, triggerBalanceRefresh]);
 
+  // Simple error clearing utility for resetting error state
   const clearError = useCallback(() => {
     setError(null);
   }, []);
 
+  /**
+   * Dynamic message generator for verification step feedback.
+   * 
+   * This function provides contextual user feedback messages based on the current
+   * verification step, helping users understand what's happening during the security
+   * process. It generates appropriate titles, descriptions, and message types for
+   * each step of the verification workflow, ensuring users receive clear guidance
+   * throughout the transaction security process.
+   */
   const getVerificationStepMessage = useCallback(() => {
     if (!currentVerification) return null;
 

@@ -1,12 +1,23 @@
 /**
- * KIP Token Validation Utilities
- * Validates that the KIP token contract is properly configured and accessible
+ * KIP Token Validation Utilities for Contract Verification
+ * 
+ * This module provides specialized validation utilities for the KIP token contract
+ * including metadata verification, balance testing, and comprehensive contract
+ * functionality validation. The utilities help ensure proper token contract
+ * deployment and configuration while providing detailed feedback about token
+ * properties and accessibility for troubleshooting integration issues.
  */
 
 import { getKIPTokenInfo, getIPTBalance } from './contracts';
 
 /**
- * Validate KIP token contract and ABI
+ * Comprehensive KIP token contract validation with metadata verification.
+ * 
+ * This function performs complete validation of the KIP token contract including
+ * metadata retrieval, expected value verification, and accessibility testing.
+ * It validates token name, symbol, decimals, and total supply against expected
+ * values while providing detailed feedback about any configuration mismatches
+ * or connectivity issues with the deployed contract.
  */
 export const validateKIPToken = async () => {
   try {
@@ -49,9 +60,7 @@ export const validateKIPToken = async () => {
   }
 };
 
-/**
- * Test balance retrieval for a given address
- */
+// Balance retrieval testing for contract accessibility verification
 export const testBalanceRetrieval = async (address) => {
   if (!address) {
     console.log('ℹ️  No address provided for balance test');
@@ -81,7 +90,12 @@ export const testBalanceRetrieval = async (address) => {
 };
 
 /**
- * Run comprehensive KIP token tests
+ * Complete KIP token testing suite with comprehensive validation.
+ * 
+ * This function runs a full suite of KIP token tests including contract
+ * validation, balance retrieval testing, and comprehensive reporting.
+ * It provides detailed feedback about token contract functionality and
+ * helps identify any issues with contract deployment or configuration.
  */
 export const runKIPTokenTests = async (testAddress = null) => {
   console.log('🚀 Running KIP Token Validation Tests...\n');

@@ -1,9 +1,21 @@
 /**
- * System validation utilities to ensure proper integration
+ * System Validation Utilities for Configuration and Environment Checks
+ * 
+ * This module provides comprehensive validation utilities for ensuring proper
+ * system configuration including environment variables, wallet connectivity,
+ * and contract address validation. The utilities help identify configuration
+ * issues early and provide clear feedback for troubleshooting deployment
+ * and development environment problems.
  */
 
 /**
- * Validate that all required environment variables are set
+ * Environment variable validation for required configuration.
+ * 
+ * This function checks that all necessary environment variables are properly
+ * configured for the application to function correctly. It validates the
+ * presence of contract addresses and other critical configuration values
+ * required for blockchain integration and provides clear feedback about
+ * missing configuration items.
  */
 export const validateEnvironment = () => {
   const requiredEnvVars = [
@@ -24,9 +36,7 @@ export const validateEnvironment = () => {
   return true;
 };
 
-/**
- * Validate wallet connection capability
- */
+// Wallet provider detection for MetaMask availability checking
 export const validateWalletConnection = () => {
   if (typeof window === 'undefined') {
     console.log('ℹ️  Running in server environment, skipping wallet validation');
@@ -42,9 +52,7 @@ export const validateWalletConnection = () => {
   return true;
 };
 
-/**
- * Validate contract addresses format
- */
+// Ethereum address format validation for contract configuration
 export const validateContractAddresses = () => {
   const addresses = {
     IP_CREATOR: process.env.NEXT_PUBLIC_IP_CREATOR_ADDRESS,
@@ -67,7 +75,12 @@ export const validateContractAddresses = () => {
 };
 
 /**
- * Run all system validations
+ * Comprehensive system validation runner with detailed reporting.
+ * 
+ * This function executes all validation checks and provides a comprehensive
+ * report of system readiness including environment configuration, wallet
+ * connectivity, and contract address validation. It helps identify and
+ * troubleshoot configuration issues during development and deployment.
  */
 export const runSystemValidation = () => {
   console.log('🔍 Running system validation checks...\n');

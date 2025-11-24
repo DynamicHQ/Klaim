@@ -10,6 +10,16 @@ import { useTransactionSecurity } from '@/hooks/useTransactionSecurity';
 import TransactionVerificationModal from '@/components/TransactionVerificationModal';
 import SecurityTooltip from '@/components/SecurityTooltip';
 
+/**
+ * Secure Marketplace Component with Transaction Verification
+ * 
+ * This component provides a comprehensive marketplace interface for browsing and
+ * purchasing IP assets with integrated security features. It implements mandatory
+ * message signing for all purchase transactions to prevent bot attacks, real-time
+ * search functionality, and detailed product viewing with modal interfaces. The
+ * component features secure transaction processing with step-by-step verification,
+ * comprehensive error handling, and automatic balance refresh upon successful purchases.
+ */
 export default function Marketplace() {
   const router = useRouter();
   const { account: address, isConnected } = useWallet();
@@ -26,6 +36,14 @@ export default function Marketplace() {
     fetchProducts();
   }, []);
 
+  /**
+   * Marketplace listings fetcher with comprehensive error handling.
+   * 
+   * This function retrieves all available marketplace listings from the API
+   * with proper loading state management and error handling. It provides
+   * user feedback during the loading process and handles various failure
+   * scenarios with appropriate error messages and retry capabilities.
+   */
   const fetchProducts = async () => {
     setLoading(true);
     setError('');
@@ -53,10 +71,20 @@ export default function Marketplace() {
     }
   }, [searchQuery, products]);
 
+  // Product selection handler for modal display
   const handleProductClick = (product) => {
     setSelectedProduct(product);
   };
 
+  /**
+   * Secure purchase handler with mandatory transaction verification.
+   * 
+   * This function implements the complete secure purchase workflow including
+   * wallet connection validation, transaction security verification through
+   * message signing, and the actual purchase execution. It integrates with
+   * the transaction security system to prevent bot attacks while providing
+   * comprehensive user feedback throughout the verification and purchase process.
+   */
   const handleBuyNow = async (product) => {
     if (!isConnected) {
       alert('Please connect your wallet first');

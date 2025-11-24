@@ -1,14 +1,29 @@
 import { ethers } from 'ethers';
 
 /**
- * Generate a cryptographically secure nonce
+ * Transaction Security Utilities for Marketplace Protection
+ * 
+ * This module provides comprehensive security utilities for marketplace transactions
+ * including cryptographically secure message generation, wallet signature verification,
+ * and anti-bot protection mechanisms. The utilities implement a multi-layered security
+ * approach with unique nonces, timestamp validation, and human-readable verification
+ * messages that prevent automated attacks while maintaining user-friendly experience.
  */
+
+// Generate a cryptographically secure nonce for replay attack prevention
 export const generateNonce = () => {
   return ethers.hexlify(ethers.randomBytes(16));
 };
 
 /**
- * Generate a verification message for marketplace transactions
+ * Verification message generator for secure marketplace transactions.
+ * 
+ * This function creates human-readable verification messages that include all
+ * transaction details, unique nonces, timestamps, and wallet addresses. The
+ * generated messages provide clear transaction context for users while
+ * implementing security measures against replay attacks and bot automation.
+ * Each message is uniquely crafted based on transaction type and contains
+ * all necessary information for cryptographic validation.
  */
 export const generateVerificationMessage = (address, transactionDetails) => {
   const { type, assetId, price, listingId } = transactionDetails;
@@ -56,7 +71,14 @@ By signing this message, you confirm your intent to perform this transaction.`;
 };
 
 /**
- * Sign a verification message using the user's wallet
+ * Wallet signature collection with comprehensive error handling.
+ * 
+ * This function manages the complete message signing process through MetaMask
+ * including provider initialization, signature request, and error categorization.
+ * It provides detailed error handling for various failure scenarios including
+ * user rejection, invalid message formats, and wallet connectivity issues.
+ * The function ensures proper signature collection while maintaining user
+ * experience through clear error messaging.
  */
 export const signVerificationMessage = async (messageData) => {
   if (typeof window === 'undefined' || !window.ethereum) {
@@ -86,7 +108,14 @@ export const signVerificationMessage = async (messageData) => {
 };
 
 /**
- * Validate a signed verification message
+ * Cryptographic signature validation with security checks.
+ * 
+ * This function performs comprehensive validation of signed messages including
+ * cryptographic signature verification, address matching, and timestamp validation.
+ * It implements multiple security layers to prevent replay attacks, signature
+ * forgery, and expired message usage. The validation ensures that only legitimate
+ * signatures from the correct wallet address within the valid time window are
+ * accepted for transaction processing.
  */
 export const validateSignedMessage = (signedMessageData, expectedAddress) => {
   try {
@@ -113,9 +142,7 @@ export const validateSignedMessage = (signedMessageData, expectedAddress) => {
   }
 };
 
-/**
- * Format transaction details for display
- */
+// Transaction detail formatter for user interface display with icons and descriptions
 export const formatTransactionDetails = (transactionDetails) => {
   const { type, assetId, price, listingId } = transactionDetails;
 

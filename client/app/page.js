@@ -3,9 +3,11 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Inter, Oswald } from "next/font/google";
-import { FaCheck } from 'react-icons/fa';
-import { useAccount } from 'wagmi';
+import { FaCheck, FaWallet } from 'react-icons/fa';
+import { useAuth } from '@/contexts/AuthContext';
+import { useWallet } from '@/hooks/useWallet';
 
+// Google Fonts configuration for consistent typography
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
@@ -16,9 +18,20 @@ const oswald = Oswald({
   subsets: ["latin"],
 });
 
+/**
+ * Home Page Component with Dynamic CTA Flow
+ * 
+ * This component serves as the main landing page for the Klaim platform, featuring
+ * a comprehensive hero section with dynamic call-to-action buttons based on user
+ * authentication and wallet connection status. It implements a three-tier CTA system:
+ * unauthenticated users see "Get Started", authenticated users without wallets see
+ * "Connect Wallet", and fully connected users see "Create NFT" and "Marketplace" options.
+ * The page includes detailed feature explanations, creator spotlights, and trust indicators.
+ */
 export default function Home() {
   const router = useRouter();
-  const { address, isConnected } = useAccount();
+  const { isAuthenticated } = useAuth();
+  const { account: address, isConnected, connectWallet } = useWallet();
 
   return (
     <main className="bg-background flex flex-col items-center justify-between">
@@ -37,7 +50,26 @@ export default function Home() {
               Explore the world of digital ownership with Klaim, the premier platform for creating, managing, and trading IPs. Join our community of creators and collectors today!
             </p>
             
-            {isConnected ? (
+            {!isAuthenticated ? (
+              <div className="flex justify-center gap-4">
+                <a href='/login' className="btn bg-main text-white rounded-md px-8 py-6 outline-none transition-transform duration-300 hover:-translate-y-1 flex items-center gap-2">Get Started</a>
+                <a href="/docs" className="btn outline-main btn-outline text-main rounded-md px-8 py-6 transition-transform duration-300 hover:-translate-y-1 hover:text-white hover:bg-main">Learn More</a>
+              </div>
+            ) : !isConnected ? (
+              <div className="flex flex-col gap-4">
+                <div className="alert alert-info">
+                  <FaWallet />
+                  <span>Please connect your wallet to continue</span>
+                </div>
+                <div className="flex justify-center gap-4">
+                  <button onClick={connectWallet} className="btn bg-main text-white rounded-md px-8 py-6 outline-none transition-transform duration-300 hover:-translate-y-1 flex items-center gap-2">
+                    <FaWallet />
+                    Connect Wallet
+                  </button>
+                  <a href="/docs" className="btn outline-main btn-outline text-main rounded-md px-8 py-6 transition-transform duration-300 hover:-translate-y-1 hover:text-white hover:bg-main">Learn More</a>
+                </div>
+              </div>
+            ) : (
               <div className="flex flex-col gap-4">
                 <div className="alert alert-success">
                   <FaCheck />
@@ -47,11 +79,6 @@ export default function Home() {
                   <button onClick={() => router.push('/create')} className="btn bg-main text-white rounded-md px-8 py-6 outline-none transition-transform duration-300 hover:-translate-y-1">Create NFT</button>
                   <button onClick={() => router.push('/marketplace')} className="btn outline-main btn-outline text-main rounded-md px-8 py-6 transition-transform duration-300 hover:-translate-y-1 hover:text-white hover:bg-main">Marketplace</button>
                 </div>
-              </div>
-            ) : (
-              <div className="flex justify-center gap-4">
-                <a href='/login' className="btn bg-main text-white rounded-md px-8 py-6 outline-none transition-transform duration-300 hover:-translate-y-1 flex items-center gap-2">Get Started</a>
-                <a href="/docs" className="btn outline-main btn-outline text-main rounded-md px-8 py-6 transition-transform duration-300 hover:-translate-y-1 hover:text-white hover:bg-main">Learn More</a>
               </div>
             )}
           </div>

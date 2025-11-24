@@ -3,6 +3,18 @@
 import { useState, useEffect } from 'react';
 import { syncWallet } from '@/utils/api';
 
+/**
+ * Custom hook for MetaMask wallet connection and management.
+ * 
+ * This hook provides comprehensive wallet connection functionality including
+ * automatic connection detection, manual connection initiation, and real-time
+ * account change monitoring. It handles MetaMask integration, error scenarios,
+ * and maintains synchronization with the backend API. The hook automatically
+ * detects existing connections on page load and provides seamless wallet
+ * management throughout the user session with proper cleanup and event handling.
+ * 
+ * @returns {Object} Wallet state and connection functions
+ */
 export const useWallet = () => {
   const [account, setAccount] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
@@ -14,6 +26,14 @@ export const useWallet = () => {
     checkConnection();
   }, []);
 
+  /**
+   * Automatic wallet connection detection and initialization.
+   * 
+   * This function checks for existing MetaMask connections on component mount
+   * and automatically establishes the connection state if a wallet is already
+   * connected. It handles the initial synchronization with the backend API
+   * and sets up the local storage for persistent connection state management.
+   */
   const checkConnection = async () => {
     if (typeof window !== 'undefined' && window.ethereum) {
       try {
@@ -40,6 +60,15 @@ export const useWallet = () => {
     }
   };
 
+  /**
+   * Manual wallet connection initiation with comprehensive error handling.
+   * 
+   * This function handles user-initiated wallet connections through MetaMask,
+   * including permission requests, account retrieval, and backend synchronization.
+   * It provides detailed error handling for various failure scenarios including
+   * missing MetaMask, user rejection, and network issues. The function ensures
+   * proper state management and persistence of connection data.
+   */
   const connectWallet = async () => {
     if (typeof window === 'undefined' || !window.ethereum) {
       setError('MetaMask is not installed. Please install MetaMask to continue.');
@@ -78,6 +107,7 @@ export const useWallet = () => {
     }
   };
 
+  // Wallet disconnection with backend synchronization and state cleanup
   const disconnectWallet = async () => {
     // Inform backend that wallet is no longer connected by sending empty string
     try {
@@ -92,7 +122,7 @@ export const useWallet = () => {
     if (typeof window !== 'undefined') localStorage.removeItem('walletAddress');
   };
 
-  // Listen for account changes
+  // Real-time MetaMask event monitoring for account and network changes
   useEffect(() => {
     if (typeof window !== 'undefined' && window.ethereum) {
       const handleAccountsChanged = async (accounts) => {

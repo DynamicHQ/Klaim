@@ -3,9 +3,20 @@
 import { useState } from 'react';
 import { FaChevronDown, FaChevronUp } from 'react-icons/fa';
 
+/**
+ * Frequently Asked Questions Page Component
+ * 
+ * This component provides an interactive FAQ interface with collapsible
+ * question-answer sections organized by categories. It features smooth
+ * accordion-style interactions, comprehensive coverage of platform features,
+ * technical questions, and user guidance. The component implements proper
+ * state management for expand/collapse functionality and provides clear
+ * navigation through common user questions and platform explanations.
+ */
 export default function FAQ() {
   const [openIndex, setOpenIndex] = useState(null);
 
+  // FAQ accordion toggle handler for expand/collapse functionality
   const toggleFAQ = (index) => {
     setOpenIndex(openIndex === index ? null : index);
   };

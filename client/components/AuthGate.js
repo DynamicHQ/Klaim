@@ -5,6 +5,16 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { FaSpinner, FaLock } from 'react-icons/fa';
 
+/**
+ * Authentication Gate Component for Protected Routes
+ * 
+ * This component provides authentication protection for sensitive pages
+ * by checking user authentication status and redirecting unauthenticated
+ * users to the login page. It features loading states during authentication
+ * checks, automatic redirection for unauthorized access, and fallback
+ * interfaces for unauthenticated users. The component ensures secure
+ * access control while providing smooth user experience transitions.
+ */
 export default function AuthGate({ children }) {
   const router = useRouter();
   const { isAuthenticated, isLoading, wallet } = useAuth();

@@ -1,4 +1,13 @@
-// Story Protocol integration utilities
+/**
+ * Story Protocol Integration Service
+ * 
+ * This service provides comprehensive integration with Story Protocol for
+ * intellectual property registration and management. It orchestrates the
+ * complete IP creation workflow including image upload, metadata processing,
+ * NFT minting, and IP registration on the Story Protocol blockchain. The
+ * service abstracts complex blockchain interactions into simple method calls
+ * while maintaining proper error handling and transaction tracking.
+ */
 import { createNFT, createIP, uploadToCloudinary } from '@/utils/api';
 
 export class StoryProtocolService {
@@ -10,6 +19,15 @@ export class StoryProtocolService {
     this.initialized = true;
   }
 
+  /**
+   * Complete IP creation and registration workflow.
+   * 
+   * This method handles the entire process of creating and registering
+   * intellectual property assets including image upload to IPFS, metadata
+   * processing, NFT minting, and IP registration on Story Protocol. It
+   * provides comprehensive error handling and returns detailed transaction
+   * information for tracking and verification purposes.
+   */
   async createAndRegisterIP(metadata, creatorWallet) {
     if (!this.initialized) {
       await this.initialize();
@@ -87,7 +105,15 @@ export const validateMetadata = (metadata) => {
   return errors;
 };
 
-// Format metadata for Story Protocol
+/**
+ * Metadata formatter for Story Protocol compatibility.
+ * 
+ * This function transforms user form data into Story Protocol-compatible
+ * metadata format including proper field mapping, data validation, and
+ * structure formatting. It ensures metadata conforms to Story Protocol
+ * standards while preserving all user-provided information for proper
+ * IP asset registration and display.
+ */
 export const formatMetadataForStoryProtocol = (formData) => {
   return {
     name: formData.title,
