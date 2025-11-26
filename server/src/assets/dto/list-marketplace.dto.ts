@@ -1,6 +1,6 @@
 import { IsNotEmpty, IsString, IsNumber, IsEthereumAddress } from 'class-validator';
 
-export class ListMarketplaceDto {
+export class ListMarketplaceDto {j
     assetId: string;
     
   @IsEthereumAddress()
