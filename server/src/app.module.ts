@@ -6,11 +6,8 @@ import { APP_GUARD } from '@nestjs/core';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { AssetsModule } from './assets/assets.module';
-<<<<<<< HEAD
-=======
 import { Web3Module } from './web3/web3.module';
 import { FaucetModule } from './faucet/faucet.module';
->>>>>>> 0844788e83e739f1c56a49cfcf73347ed3ee11d4
 
 
 @Module({
@@ -25,11 +22,6 @@ import { FaucetModule } from './faucet/faucet.module';
       }),
       inject: [ConfigService],
     }),
-<<<<<<< HEAD
-      AuthModule,
-      UserModule,
-      AssetsModule,],
-=======
     ThrottlerModule.forRoot([{
       ttl: 60000, // 60 seconds
       limit: 10, // 10 requests per minute (default for non-throttled endpoints)
@@ -40,7 +32,6 @@ import { FaucetModule } from './faucet/faucet.module';
     Web3Module,
     FaucetModule,
   ],
->>>>>>> 0844788e83e739f1c56a49cfcf73347ed3ee11d4
   controllers: [],
   providers: [
     {
