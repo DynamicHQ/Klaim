@@ -80,7 +80,7 @@ export default function FAQs() {
           {faq.map((item, index) => (
             <div key={index} className="collapse collapse-arrow bg-base-100 shadow-md hover:shadow-lg transition-shadow border border-base-300">
               <input type="checkbox" className="peer" /> 
-              <div className={`collapse-title pl-10 font-semibold text-sm md:text-base lg:text-lg peer-checked:text-primary ${oswald.variable}`}>
+              <div className={`collapse-title font-semibold text-sm md:text-base lg:text-lg peer-checked:text-primary pr-12 ${oswald.variable}`}>
                 {item.question}
               </div>
               <div className="collapse-content">
