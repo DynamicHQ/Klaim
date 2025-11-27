@@ -1,54 +1,62 @@
 /**
- * Frontend API Utilities for Backend Communication
+ * Mobile API Utilities for Backend Communication
  * 
  * This module provides comprehensive API utilities for communicating with the
- * Klaim backend including authentication management, asset operations, marketplace
- * interactions, and user management. It implements JWT token handling, automatic
- * request authentication, error handling, and response parsing. The utilities
- * abstract complex API interactions into simple function calls while maintaining
- * proper error handling and authentication state management throughout the application.
+ * Klaim backend from React Native. Adapted from the web client with mobile-specific
+ * changes including AsyncStorage for token persistence and removal of window dependencies.
  */
 
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 // Backend API endpoint configuration with environment variable support
-const API_ENDPOINT = process.env.NEXT_PUBLIC_API_ENDPOINT || 'https://klaim.onrender.com';
+const API_ENDPOINT = process.env.EXPO_PUBLIC_API_ENDPOINT || 'http://localhost:3001';
 
 // JWT token storage and unauthorized callback management
 let authToken = null;
 let onUnauthorizedCallback = null;
 
-// JWT token setter with localStorage persistence for authenticated requests
-export function setAuthToken(token) {
+/**
+ * Set JWT token with AsyncStorage persistence for authenticated requests
+ * @param {string} token - JWT token
+ */
+export async function setAuthToken(token) {
   authToken = token;
-  if (typeof window !== 'undefined') {
-    localStorage.setItem('auth_token', token);
+  try {
+    await AsyncStorage.setItem('auth_token', token);
+  } catch (error) {
+    console.error('Failed to save auth token:', error);
   }
 }
 
 /**
  * Clear JWT token
  */
-export function clearAuthToken() {
+export async function clearAuthToken() {
   authToken = null;
-  if (typeof window !== 'undefined') {
-    localStorage.removeItem('auth_token');
+  try {
+    await AsyncStorage.removeItem('auth_token');
+  } catch (error) {
+    console.error('Failed to clear auth token:', error);
   }
 }
 
 /**
  * Get current JWT token
- * @returns {string|null} JWT token or null
+ * @returns {Promise<string|null>} JWT token or null
  */
-export function getAuthToken() {
+export async function getAuthToken() {
   if (authToken) {
     return authToken;
   }
   
-  if (typeof window !== 'undefined') {
-    const token = localStorage.getItem('auth_token');
+  try {
+    const token = await AsyncStorage.getItem('auth_token');
     if (token) {
       authToken = token;
       return token;
     }
+  } catch (error) {
+    console.error('Failed to get auth token:', error);
   }
   
   return null;
@@ -64,14 +72,14 @@ export function setOnUnauthorizedCallback(callback) {
 
 /**
  * Get headers with optional authorization
- * @returns {Object} Headers object
+ * @returns {Promise<Object>} Headers object
  */
-function getHeaders() {
+async function getHeaders() {
   const headers = {
     'Content-Type': 'application/json'
   };
   
-  const token = getAuthToken();
+  const token = await getAuthToken();
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
   }
@@ -81,9 +89,11 @@ function getHeaders() {
 
 async function postJSON(path, body) {
   const url = `${API_ENDPOINT}${path}`;
+  const headers = await getHeaders();
+  
   const res = await fetch(url, {
     method: 'POST',
-    headers: getHeaders(),
+    headers,
     body: JSON.stringify(body)
   });
 
@@ -125,9 +135,11 @@ async function postJSON(path, body) {
 
 async function getJSON(path) {
   const url = `${API_ENDPOINT}${path}`;
+  const headers = await getHeaders();
+  
   const res = await fetch(url, {
     method: 'GET',
-    headers: getHeaders()
+    headers
   });
 
   const text = await res.text();
@@ -168,53 +180,12 @@ async function getJSON(path) {
 
 async function patchJSON(path, body) {
   const url = `${API_ENDPOINT}${path}`;
+  const headers = await getHeaders();
+  
   const res = await fetch(url, {
     method: 'PATCH',
-    headers: getHeaders(),
+    headers,
     body: JSON.stringify(body)
-  });
-
-  const text = await res.text();
-  let json = null;
-  try {
-    json = text ? JSON.parse(text) : null;
-  } catch (e) {
-    throw new Error(`Invalid JSON response from ${url}`);
-  }
-
-  if (!res.ok) {
-    // Handle 401 Unauthorized
-    if (res.status === 401 && onUnauthorizedCallback) {
-      onUnauthorizedCallback();
-    }
-    
-    // Extract error message from various possible formats
-    let message = 'API error';
-    if (json) {
-      // Handle array of messages (validation errors)
-      if (Array.isArray(json.message)) {
-        message = json.message.join(', ');
-      } else {
-        message = json.message || json.error || res.statusText;
-      }
-    } else {
-      message = res.statusText;
-    }
-    
-    const err = new Error(message);
-    err.status = res.status;
-    err.response = json;
-    throw err;
-  }
-
-  return json;
-}
-
-async function deleteJSON(path) {
-  const url = `${API_ENDPOINT}${path}`;
-  const res = await fetch(url, {
-    method: 'DELETE',
-    headers: getHeaders()
   });
 
   const text = await res.text();
@@ -288,31 +259,25 @@ export async function signupUser(username, walletAddress) {
 }
 
 /**
- * A high-level function to create a complete asset.
- * It uploads the image, then creates the NFT and IP records on the backend.
- * @param {object} assetData - Contains title, description, and image file.
- * @param {string} assetData.title - The title of the asset.
- * @param {string} assetData.description - The description of the asset.
- * @param {File} assetData.image - The image file for the asset.
- * @param {string} walletAddress - The creator's wallet address.
- * @returns {Promise<object>} The final response from the createIp call.
- */
-/**
  * Comprehensive asset creation with IPFS upload and blockchain integration.
  * 
  * This function orchestrates the complete asset creation process including
- * image upload to Pinata IPFS, metadata formatting, and backend API
- * communication for NFT minting and IP registration. It handles the complex
- * workflow of transforming user input into blockchain-ready assets while
- * providing proper error handling and progress tracking throughout the process.
+ * image upload to IPFS, metadata formatting, and backend API communication
+ * for NFT minting and IP registration.
+ * 
+ * @param {object} assetData - Contains title, description, and image file.
+ * @param {string} assetData.title - The title of the asset.
+ * @param {string} assetData.description - The description of the asset.
+ * @param {object} assetData.image - The image file/URI for the asset.
+ * @param {string} walletAddress - The creator's wallet address.
+ * @returns {Promise<object>} The final response from the createIP call.
  */
 export async function createAsset(assetData, walletAddress) {
-  // Step 1: Upload image to get the URL. We'll use the Pinata function directly.
-  // Note: In a larger app, this uploader could also be part of the api utility.
+  // Step 1: Upload image to get the URL
   const { uploadToPinata } = await import('./pinata');
   const imageUrl = await uploadToPinata(assetData.image);
 
-  // Step 2: Create the NFT metadata record.
+  // Step 2: Create the NFT metadata record
   const nftInfo = {
     name: assetData.title,
     description: assetData.description,
@@ -320,7 +285,7 @@ export async function createAsset(assetData, walletAddress) {
   };
   const nftResponse = await createNFT(nftInfo, walletAddress);
 
-  // Step 3: Create the IP metadata record, linking it to the NFT.
+  // Step 3: Create the IP metadata record, linking it to the NFT
   const ipInfo = {
     title: assetData.title,
     description: assetData.description,
@@ -339,13 +304,13 @@ export async function loginUser(username, walletAddress) {
   return postJSON('/users/login', { username, walletAddress });
 }
 
-export async function createNFT(nft_info, walletAddress) { // Renamed from createNft for consistency
+export async function createNFT(nft_info, walletAddress) {
   const body = { nft_info };
   if (walletAddress) body.walletAddress = walletAddress;
   return postJSON('/assets/nft', body);
 }
 
-export async function createIP(ip_info, nftId) { // Renamed from createIp for consistency
+export async function createIP(ip_info, nftId) {
   const body = { ip_info };
   if (nftId) body.nftId = nftId;
   return postJSON('/assets/ip', body);
@@ -385,9 +350,6 @@ export async function listOnMarketplace(assetId, price, seller) {
  * 
  * This function handles the complete IP asset purchase process including
  * payment processing, ownership transfer, and marketplace state updates.
- * It communicates with the backend to execute the purchase transaction
- * and update all relevant records while providing comprehensive error
- * handling and transaction confirmation feedback.
  */
 export async function purchaseIP(listingId, buyer) {
   return postJSON('/assets/marketplace/purchase', {
@@ -396,12 +358,19 @@ export async function purchaseIP(listingId, buyer) {
   });
 }
 
-// Marketplace listings retrieval for browsing and search functionality
+/**
+ * Marketplace listings retrieval for browsing and search functionality
+ * @returns {Promise<Array>} Array of marketplace listings
+ */
 export async function getMarketplaceListings() {
   return getJSON('/assets/marketplace');
 }
 
-// User-owned IP assets retrieval for profile and management interfaces
+/**
+ * User-owned IP assets retrieval for profile and management interfaces
+ * @param {string} walletAddress - Wallet address
+ * @returns {Promise<Array>} Array of user's IP assets
+ */
 export async function getUserIPs(walletAddress) {
   return getJSON(`/assets/user/${walletAddress}`);
 }
@@ -418,36 +387,6 @@ export async function transferIPOwnership(assetId, fromAddress, toAddress) {
     assetId,
     fromAddress,
     toAddress
-  });
-}
-
-export async function uploadToCloudinary(file) {
-  // Upload file to Cloudinary
-  const formData = new FormData();
-  formData.append('file', file);
-  formData.append('upload_preset', process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'unsigned_preset');
-
-  const cloudinaryUrl = `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`;
-  
-  const response = await fetch(cloudinaryUrl, {
-    method: 'POST',
-    body: formData
-  });
-
-  if (!response.ok) {
-    throw new Error('Failed to upload to Cloudinary');
-  }
-
-  const data = await response.json();
-  return data.secure_url;
-}
-
-export async function readFileAsDataURL(file) {
-  return await new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onerror = () => reject(new Error('Failed to read file'));
-    reader.onload = () => resolve(reader.result);
-    reader.readAsDataURL(file);
   });
 }
 
@@ -483,7 +422,6 @@ export async function getTokenBalance(walletAddress) {
 /**
  * Ping the backend server to wake it up
  * This is useful for services that sleep after inactivity (like Render free tier)
- * Uses the /assets endpoint which is a simple GET request
  * @returns {Promise<Object>} Server status
  */
 export async function pingServer() {
@@ -493,8 +431,8 @@ export async function pingServer() {
       headers: {
         'Content-Type': 'application/json'
       },
-      // Add timeout to prevent hanging
-      signal: AbortSignal.timeout(10000) // 10 second timeout
+      // Add timeout to prevent hanging (10 seconds)
+      signal: AbortSignal.timeout(10000)
     });
     
     // Any response (even 401 unauthorized) means the server is awake
@@ -524,9 +462,7 @@ export default {
   loginUser,
   // Asset endpoints
   createNFT,
-  createNft: createNFT, // alias for backward compatibility if needed
   createIP,
-  createIp: createIP, // alias for backward compatibility if needed
   updateBlockchainData,
   listOnMarketplace,
   purchaseIP,
@@ -539,9 +475,6 @@ export default {
   getTokenBalance,
   // Server health
   pingServer,
-  // Utility
-  uploadToCloudinary,
-  readFileAsDataURL,
   // High-level functions
   createAsset
 };

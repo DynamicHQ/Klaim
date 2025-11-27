@@ -1,22 +1,20 @@
 import { ethers } from 'ethers';
 
 /**
- * Smart Contract Integration Utilities for Klaim Marketplace
+ * Smart Contract Integration Utilities for Klaim Mobile App
  * 
- * This module provides comprehensive smart contract interaction utilities for the
- * Klaim marketplace including contract address management, ABI definitions, and
- * high-level transaction functions. It handles all blockchain interactions for
- * IP creation, marketplace operations, and KIP token management with proper error
- * handling and transaction parsing. The utilities abstract complex blockchain
- * operations into simple function calls while maintaining full transaction transparency.
+ * This module provides comprehensive smart contract interaction utilities adapted
+ * for React Native. It handles all blockchain interactions for IP creation,
+ * marketplace operations, and KIP token management with WalletConnect provider
+ * integration instead of BrowserProvider.
  */
 
 // Contract addresses (update these after deployment)
 export const CONTRACT_ADDRESSES = {
-  IP_CREATOR: process.env.NEXT_PUBLIC_IP_CREATOR_ADDRESS || '',
-  IP_MARKETPLACE: process.env.NEXT_PUBLIC_IP_MARKETPLACE_ADDRESS || '',
-  IP_TOKEN: process.env.NEXT_PUBLIC_IP_TOKEN_ADDRESS || '',
-  NFT_CONTRACT: process.env.NEXT_PUBLIC_NFT_CONTRACT_ADDRESS || '',
+  IP_CREATOR: process.env.EXPO_PUBLIC_IP_CREATOR_ADDRESS || '',
+  IP_MARKETPLACE: process.env.EXPO_PUBLIC_IP_MARKETPLACE_ADDRESS || '',
+  IP_TOKEN: process.env.EXPO_PUBLIC_IP_TOKEN_ADDRESS || '',
+  NFT_CONTRACT: process.env.EXPO_PUBLIC_NFT_CONTRACT_ADDRESS || '',
 };
 
 // Contract ABIs
@@ -61,56 +59,96 @@ export const IP_TOKEN_ABI = [
   'event TokensMinted(address indexed to, uint256 amount)',
 ];
 
-// MetaMask provider initialization with error handling for missing wallet
-export const getProvider = () => {
-  if (typeof window === 'undefined' || !window.ethereum) {
-    throw new Error('MetaMask not installed');
+/**
+ * Get provider from WalletConnect
+ * This should be called with the provider from WalletContext
+ * @param {Object} walletProvider - WalletConnect provider from context
+ * @returns {ethers.Provider} Ethers provider instance
+ */
+export const getProvider = (walletProvider) => {
+  if (!walletProvider) {
+    throw new Error('Wallet not connected');
   }
-  return new ethers.BrowserProvider(window.ethereum);
+  return new ethers.BrowserProvider(walletProvider);
 };
 
-// Wallet signer retrieval for transaction signing
-export const getSigner = async () => {
-  const provider = getProvider();
+/**
+ * Get signer from WalletConnect provider
+ * @param {Object} walletProvider - WalletConnect provider from context
+ * @returns {Promise<ethers.Signer>} Ethers signer instance
+ */
+export const getSigner = async (walletProvider) => {
+  const provider = getProvider(walletProvider);
   return await provider.getSigner();
 };
 
-// IP Creator contract instance with configuration validation
-export const getIPCreatorContract = async () => {
+/**
+ * Get IP Creator contract instance
+ * @param {Object} walletProvider - WalletConnect provider from context
+ * @returns {Promise<ethers.Contract>} Contract instance
+ */
+export const getIPCreatorContract = async (walletProvider) => {
   if (!CONTRACT_ADDRESSES.IP_CREATOR) {
     throw new Error('IP Creator contract address not configured');
   }
-  const signer = await getSigner();
+  const signer = await getSigner(walletProvider);
   return new ethers.Contract(CONTRACT_ADDRESSES.IP_CREATOR, IP_CREATOR_ABI, signer);
 };
 
-// IP Marketplace contract instance for trading operations
-export const getIPMarketplaceContract = async () => {
+/**
+ * Get IP Marketplace contract instance
+ * @param {Object} walletProvider - WalletConnect provider from context
+ * @returns {Promise<ethers.Contract>} Contract instance
+ */
+export const getIPMarketplaceContract = async (walletProvider) => {
   if (!CONTRACT_ADDRESSES.IP_MARKETPLACE) {
     throw new Error('IP Marketplace contract address not configured');
   }
-  const signer = await getSigner();
+  const signer = await getSigner(walletProvider);
   return new ethers.Contract(CONTRACT_ADDRESSES.IP_MARKETPLACE, IP_MARKETPLACE_ABI, signer);
 };
 
-// KIP Token contract instance for balance and transfer operations
-export const getIPTokenContract = async () => {
+/**
+ * Get KIP Token contract instance
+ * @param {Object} walletProvider - WalletConnect provider from context
+ * @returns {Promise<ethers.Contract>} Contract instance
+ */
+export const getIPTokenContract = async (walletProvider) => {
   if (!CONTRACT_ADDRESSES.IP_TOKEN) {
     throw new Error('IP Token contract address not configured');
   }
-  const signer = await getSigner();
+  const signer = await getSigner(walletProvider);
   return new ethers.Contract(CONTRACT_ADDRESSES.IP_TOKEN, IP_TOKEN_ABI, signer);
 };
 
-// Contract deployment verification utility
-export const checkContractDeployment = async (contractAddress, contractName = 'Contract') => {
+/**
+ * Get read-only IP Token contract instance (no signer required)
+ * @param {Object} walletProvider - WalletConnect provider from context
+ * @returns {Promise<ethers.Contract>} Contract instance
+ */
+export const getIPTokenContractReadOnly = async (walletProvider) => {
+  if (!CONTRACT_ADDRESSES.IP_TOKEN) {
+    throw new Error('IP Token contract address not configured');
+  }
+  const provider = getProvider(walletProvider);
+  return new ethers.Contract(CONTRACT_ADDRESSES.IP_TOKEN, IP_TOKEN_ABI, provider);
+};
+
+/**
+ * Check if a contract is deployed at the given address
+ * @param {Object} walletProvider - WalletConnect provider from context
+ * @param {string} contractAddress - Contract address to check
+ * @param {string} contractName - Name for logging purposes
+ * @returns {Promise<boolean>} True if contract is deployed
+ */
+export const checkContractDeployment = async (walletProvider, contractAddress, contractName = 'Contract') => {
   try {
     if (!contractAddress) {
       console.warn(`${contractName} address not configured`);
       return false;
     }
     
-    const provider = getProvider();
+    const provider = getProvider(walletProvider);
     const code = await provider.getCode(contractAddress);
     const isDeployed = code !== '0x';
     
@@ -122,56 +160,6 @@ export const checkContractDeployment = async (contractAddress, contractName = 'C
   } catch (error) {
     console.error(`Error checking ${contractName} deployment:`, error);
     return false;
-  }
-};
-
-// Comprehensive contract status checker
-export const checkAllContractsStatus = async () => {
-  try {
-    const provider = getProvider();
-    const network = await provider.getNetwork();
-    
-    console.log('Current network:', {
-      name: network.name,
-      chainId: network.chainId.toString()
-    });
-    
-    const contractChecks = await Promise.all([
-      checkContractDeployment(CONTRACT_ADDRESSES.IP_TOKEN, 'IP Token'),
-      checkContractDeployment(CONTRACT_ADDRESSES.IP_CREATOR, 'IP Creator'),
-      checkContractDeployment(CONTRACT_ADDRESSES.IP_MARKETPLACE, 'IP Marketplace'),
-      checkContractDeployment(CONTRACT_ADDRESSES.NFT_CONTRACT, 'NFT Contract')
-    ]);
-    
-    const status = {
-      network: {
-        name: network.name,
-        chainId: network.chainId.toString()
-      },
-      contracts: {
-        ipToken: contractChecks[0],
-        ipCreator: contractChecks[1],
-        ipMarketplace: contractChecks[2],
-        nftContract: contractChecks[3]
-      },
-      addresses: CONTRACT_ADDRESSES
-    };
-    
-    console.log('Contract deployment status:', status);
-    return status;
-  } catch (error) {
-    console.error('Error checking contract status:', error);
-    return {
-      network: { name: 'unknown', chainId: 'unknown' },
-      contracts: {
-        ipToken: false,
-        ipCreator: false,
-        ipMarketplace: false,
-        nftContract: false
-      },
-      addresses: CONTRACT_ADDRESSES,
-      error: error.message
-    };
   }
 };
 
@@ -210,14 +198,17 @@ export const parseIPTAmount = (amount) => {
  * High-level IP asset creation with Story Protocol integration.
  * 
  * This function handles the complete IP asset creation process including metadata
- * hash calculation, blockchain transaction execution, and event parsing. It
- * interacts with the IPCreator contract to mint NFTs and register them as IP
- * assets on Story Protocol with proper licensing. The function provides
- * comprehensive error handling and returns detailed transaction information
- * including token IDs and IP asset addresses.
+ * hash calculation, blockchain transaction execution, and event parsing.
+ * 
+ * @param {Object} walletProvider - WalletConnect provider from context
+ * @param {string} recipient - Recipient wallet address
+ * @param {string} metadataURI - IPFS URI for metadata
+ * @param {Object} metadata - Metadata object for hash calculation
+ * @param {string} licenseURI - License URI (optional)
+ * @returns {Promise<Object>} Transaction result with tokenId, ipId, etc.
  */
-export const createIPOnChain = async (recipient, metadataURI, metadata, licenseURI) => {
-  const contract = await getIPCreatorContract();
+export const createIPOnChain = async (walletProvider, recipient, metadataURI, metadata, licenseURI) => {
+  const contract = await getIPCreatorContract(walletProvider);
   const metadataHash = calculateMetadataHash(metadata);
   
   const tx = await contract.createIPFromFile(
@@ -257,13 +248,13 @@ export const createIPOnChain = async (recipient, metadataURI, metadata, licenseU
 /**
  * Marketplace listing creation with event parsing.
  * 
- * This function handles IP asset listing on the marketplace including price
- * formatting, transaction execution, and listing ID extraction from events.
- * It provides a complete listing workflow with proper error handling and
- * returns the generated listing ID for tracking purposes.
+ * @param {Object} walletProvider - WalletConnect provider from context
+ * @param {number} tokenId - NFT token ID
+ * @param {number} price - Listing price in KIP tokens
+ * @returns {Promise<Object>} Transaction result with listingId
  */
-export const listIPOnChain = async (tokenId, price) => {
-  const contract = await getIPMarketplaceContract();
+export const listIPOnChain = async (walletProvider, tokenId, price) => {
+  const contract = await getIPMarketplaceContract(walletProvider);
   const priceInWei = formatIPTAmount(price);
   
   const tx = await contract.listIP(tokenId, priceInWei);
@@ -291,9 +282,14 @@ export const listIPOnChain = async (tokenId, price) => {
   };
 };
 
-// Marketplace listing cancellation with transaction hash return
-export const cancelListingOnChain = async (listingId) => {
-  const contract = await getIPMarketplaceContract();
+/**
+ * Cancel marketplace listing
+ * @param {Object} walletProvider - WalletConnect provider from context
+ * @param {string} listingId - Listing ID to cancel
+ * @returns {Promise<Object>} Transaction result
+ */
+export const cancelListingOnChain = async (walletProvider, listingId) => {
+  const contract = await getIPMarketplaceContract(walletProvider);
   const tx = await contract.cancelListing(listingId);
   const receipt = await tx.wait();
   
@@ -307,20 +303,22 @@ export const cancelListingOnChain = async (listingId) => {
  * 
  * This function handles the complete purchase workflow including KIP token
  * approval for the marketplace contract and the actual purchase transaction.
- * It implements a two-step process to ensure proper token handling and
- * provides comprehensive error handling for both approval and purchase
- * operations with detailed transaction information.
+ * 
+ * @param {Object} walletProvider - WalletConnect provider from context
+ * @param {string} listingId - Listing ID to purchase
+ * @param {number} price - Purchase price in KIP tokens
+ * @returns {Promise<Object>} Transaction result
  */
-export const purchaseIPOnChain = async (listingId, price) => {
+export const purchaseIPOnChain = async (walletProvider, listingId, price) => {
   // First approve IPT tokens
-  const tokenContract = await getIPTokenContract();
+  const tokenContract = await getIPTokenContract(walletProvider);
   const priceInWei = formatIPTAmount(price);
   
   const approveTx = await tokenContract.approve(CONTRACT_ADDRESSES.IP_MARKETPLACE, priceInWei);
   await approveTx.wait();
   
   // Then purchase
-  const marketplaceContract = await getIPMarketplaceContract();
+  const marketplaceContract = await getIPMarketplaceContract(walletProvider);
   const tx = await marketplaceContract.purchaseIP(listingId);
   const receipt = await tx.wait();
   
@@ -329,8 +327,13 @@ export const purchaseIPOnChain = async (listingId, price) => {
   };
 };
 
-// KIP token balance retrieval with automatic formatting for display
-export const getIPTBalance = async (address) => {
+/**
+ * Get KIP token balance for an address
+ * @param {Object} walletProvider - WalletConnect provider from context
+ * @param {string} address - Wallet address to check
+ * @returns {Promise<string>} Formatted balance
+ */
+export const getIPTBalance = async (walletProvider, address) => {
   try {
     // Check if contract address is configured
     if (!CONTRACT_ADDRESSES.IP_TOKEN) {
@@ -344,10 +347,10 @@ export const getIPTBalance = async (address) => {
       return '0';
     }
     
-    const contract = await getIPTokenContract();
+    const contract = await getIPTokenContractReadOnly(walletProvider);
     
     // Check if contract exists at the address by trying to get the code
-    const provider = getProvider();
+    const provider = getProvider(walletProvider);
     const code = await provider.getCode(CONTRACT_ADDRESSES.IP_TOKEN);
     if (code === '0x') {
       console.warn('No contract deployed at IP Token address:', CONTRACT_ADDRESSES.IP_TOKEN);
@@ -376,41 +379,13 @@ export const getIPTBalance = async (address) => {
 };
 
 /**
- * Complete KIP token information retrieval.
- * 
- * This function fetches comprehensive token metadata including name, symbol,
- * decimals, and total supply from the KIP token contract. It provides all
- * necessary token information for display and validation purposes with
- * proper formatting for user interfaces.
+ * Get complete KIP token information
+ * @param {Object} walletProvider - WalletConnect provider from context
+ * @returns {Promise<Object>} Token info with name, symbol, decimals, totalSupply
  */
-export const getKIPTokenInfo = async () => {
+export const getKIPTokenInfo = async (walletProvider) => {
   try {
-    // Check if contract address is configured
-    if (!CONTRACT_ADDRESSES.IP_TOKEN) {
-      console.warn('IP Token contract address not configured');
-      return {
-        name: 'KIP',
-        symbol: 'KIP',
-        decimals: 18,
-        totalSupply: '0'
-      };
-    }
-    
-    const contract = await getIPTokenContract();
-    
-    // Check if contract exists at the address
-    const provider = getProvider();
-    const code = await provider.getCode(CONTRACT_ADDRESSES.IP_TOKEN);
-    if (code === '0x') {
-      console.warn('No contract deployed at IP Token address:', CONTRACT_ADDRESSES.IP_TOKEN);
-      return {
-        name: 'KIP',
-        symbol: 'KIP',
-        decimals: 18,
-        totalSupply: '0'
-      };
-    }
-    
+    const contract = await getIPTokenContractReadOnly(walletProvider);
     const [name, symbol, decimals, totalSupply] = await Promise.all([
       contract.name(),
       contract.symbol(),
@@ -425,11 +400,7 @@ export const getKIPTokenInfo = async () => {
       totalSupply: parseIPTAmount(totalSupply)
     };
   } catch (error) {
-    if (error.code === 'BAD_DATA') {
-      console.warn('Contract call returned empty data - contract may not be deployed correctly');
-    } else {
-      console.error('Error getting KIP token info:', error);
-    }
+    console.error('Error getting KIP token info:', error);
     return {
       name: 'KIP',
       symbol: 'KIP',
@@ -439,10 +410,16 @@ export const getKIPTokenInfo = async () => {
   }
 };
 
-// KIP token allowance checking for marketplace approvals
-export const checkIPTAllowance = async (owner, spender) => {
+/**
+ * Check KIP token allowance
+ * @param {Object} walletProvider - WalletConnect provider from context
+ * @param {string} owner - Owner address
+ * @param {string} spender - Spender address
+ * @returns {Promise<string>} Formatted allowance
+ */
+export const checkIPTAllowance = async (walletProvider, owner, spender) => {
   try {
-    const contract = await getIPTokenContract();
+    const contract = await getIPTokenContractReadOnly(walletProvider);
     const allowance = await contract.allowance(owner, spender);
     
     if (allowance === null || allowance === undefined) {
@@ -456,10 +433,15 @@ export const checkIPTAllowance = async (owner, spender) => {
   }
 };
 
-// Marketplace listing details retrieval with formatted price information
-export const getListingDetails = async (listingId) => {
+/**
+ * Get marketplace listing details
+ * @param {Object} walletProvider - WalletConnect provider from context
+ * @param {string} listingId - Listing ID
+ * @returns {Promise<Object>} Listing details
+ */
+export const getListingDetails = async (walletProvider, listingId) => {
   try {
-    const contract = await getIPMarketplaceContract();
+    const contract = await getIPMarketplaceContract(walletProvider);
     const listing = await contract.listings(listingId);
     
     return {
@@ -488,8 +470,8 @@ export default {
   getIPCreatorContract,
   getIPMarketplaceContract,
   getIPTokenContract,
+  getIPTokenContractReadOnly,
   checkContractDeployment,
-  checkAllContractsStatus,
   calculateMetadataHash,
   formatIPTAmount,
   parseIPTAmount,

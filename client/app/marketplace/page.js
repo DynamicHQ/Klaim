@@ -10,7 +10,7 @@ import { useTransactionSecurity } from '@/hooks/useTransactionSecurity';
 import TransactionVerificationModal from '@/components/TransactionVerificationModal';
 import SecurityTooltip from '@/components/SecurityTooltip';
 
-/**
+/*
  * Secure Marketplace Component with Transaction Verification
  * 
  * This component provides a comprehensive marketplace interface for browsing and
@@ -24,7 +24,6 @@ export default function Marketplace() {
   const router = useRouter();
   const { account: address, isConnected } = useWallet();
   const { executeSecureTransaction, isVerifying, stepMessage, verificationStep, currentVerification } = useTransactionSecurity();
-
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -32,7 +31,7 @@ export default function Marketplace() {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [error, setError] = useState('');
 
-  /**
+  /*
    * Marketplace listings fetcher with comprehensive error handling.
    * 
    * This function retrieves all available marketplace listings from the API

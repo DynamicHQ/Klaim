@@ -149,12 +149,49 @@ export const testTransactionTypes = () => {
 };
 
 /**
+ * Test contract deployment status
+ */
+export const testContractDeployment = async () => {
+  console.log('🧪 Testing contract deployment status...');
+  
+  try {
+    const { checkAllContractsStatus } = await import('./contracts');
+    const status = await checkAllContractsStatus();
+    
+    const deployedContracts = Object.values(status.contracts).filter(Boolean).length;
+    const totalContracts = Object.keys(status.contracts).length;
+    
+    console.log(`📋 Network: ${status.network.name} (Chain ID: ${status.network.chainId})`);
+    console.log(`📋 Contracts deployed: ${deployedContracts}/${totalContracts}`);
+    
+    if (deployedContracts === 0) {
+      console.log('❌ No contracts are deployed on the current network');
+      console.log('💡 Make sure you are connected to the correct network (Story Protocol Testnet)');
+      return false;
+    } else if (deployedContracts < totalContracts) {
+      console.log('⚠️  Some contracts are missing');
+      Object.entries(status.contracts).forEach(([name, deployed]) => {
+        console.log(`   ${deployed ? '✅' : '❌'} ${name}`);
+      });
+      return false;
+    } else {
+      console.log('✅ All contracts are properly deployed');
+      return true;
+    }
+  } catch (error) {
+    console.error('❌ Contract deployment test failed:', error.message);
+    return false;
+  }
+};
+
+/**
  * Run all integration tests
  */
-export const runIntegrationTests = () => {
+export const runIntegrationTests = async () => {
   console.log('🚀 Running KIP Balance and Transaction Security Integration Tests...\n');
   
   const results = {
+    contractDeployment: await testContractDeployment(),
     messageGeneration: testMessageGeneration(),
     balanceFormatting: testBalanceFormatting(),
     transactionTypes: testTransactionTypes()
@@ -169,6 +206,13 @@ export const runIntegrationTests = () => {
     console.log('🎉 All integration tests passed!');
   } else {
     console.log('⚠️  Some tests failed. Please check the implementation.');
+    
+    if (!results.contractDeployment) {
+      console.log('\n💡 Contract deployment issues detected:');
+      console.log('   - Ensure you are connected to Story Protocol Testnet');
+      console.log('   - Check that contract addresses in .env are correct');
+      console.log('   - Verify contracts are deployed on the current network');
+    }
   }
   
   return results;
@@ -179,5 +223,6 @@ export default {
   testMessageGeneration,
   testBalanceFormatting,
   testTransactionTypes,
+  testContractDeployment,
   runIntegrationTests
 };

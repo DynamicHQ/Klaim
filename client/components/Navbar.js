@@ -66,20 +66,18 @@ export default function Navbar() {
         {!isAuthenticated ? (
           <Link 
             href="/login"
-            className="px-3 sm:px-6 md:px-8 py-2 sm:py-3 md:py-4 btn outline-main text-main btn-outline btn-xs sm:btn-sm md:btn-md rounded-md hover:bg-main hover:text-white text-xs sm:text-sm"
+            className="hidden sm:flex px-3 sm:px-6 md:px-8 py-2 sm:py-3 md:py-4 btn outline-main text-main btn-outline btn-xs sm:btn-sm md:btn-md rounded-md hover:bg-main hover:text-white text-xs sm:text-sm items-center gap-2"
           >
             <FaWallet className="w-3 h-3 sm:w-4 sm:h-4" />
-            <span className="hidden sm:inline">Get Started</span>
-            <span className="sm:hidden">Start</span>
+            <span>Get Started</span>
           </Link>
         ) : !isConnected ? (
           <button 
             onClick={connectWallet}
-            className="px-3 sm:px-6 md:px-8 py-2 sm:py-3 md:py-4 btn bg-main text-white btn-xs sm:btn-sm md:btn-md rounded-md hover:bg-main/90 text-xs sm:text-sm"
+            className="hidden sm:flex px-3 sm:px-6 md:px-8 py-2 sm:py-3 md:py-4 btn bg-main text-white btn-xs sm:btn-sm md:btn-md rounded-md hover:bg-main/90 text-xs sm:text-sm items-center gap-2"
           >
             <FaWallet className="w-3 h-3 sm:w-4 sm:h-4" />
-            <span className="hidden sm:inline">Connect Wallet</span>
-            <span className="sm:hidden">Connect</span>
+            <span>Connect Wallet</span>
           </button>
         ) : (
           <div className="flex items-center gap-1 md:gap-2">

@@ -258,4 +258,41 @@ export class AssetsService {
   async findByTokenId(tokenId: number) {
     return this.assetModel.findOne({ tokenId }).exec();
   }
+
+  // Transfer asset ownership
+  async transferAsset(assetId: string, fromAddress: string, toAddress: string): Promise<any> {
+    const asset = await this.assetModel.findById(assetId).exec();
+
+    if (!asset) {
+      throw new NotFoundException('Asset not found');
+    }
+
+    // Verify the current owner matches the fromAddress
+    if (asset.currentOwner.toLowerCase() !== fromAddress.toLowerCase()) {
+      throw new ConflictException('You do not own this asset');
+    }
+
+    // Validate the toAddress format
+    if (!toAddress || !toAddress.match(/^0x[a-fA-F0-9]{40}$/)) {
+      throw new BadRequestException('Invalid recipient wallet address format');
+    }
+
+    // Update the owner
+    asset.currentOwner = toAddress.toLowerCase();
+    
+    // If the asset is listed, remove it from marketplace
+    if (asset.isListed) {
+      asset.isListed = false;
+      asset.listingId = '';
+      asset.price = 0;
+    }
+
+    await asset.save();
+
+    return {
+      success: true,
+      message: 'Asset transferred successfully',
+      asset,
+    };
+  }
 }

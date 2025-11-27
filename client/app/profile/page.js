@@ -70,11 +70,11 @@ function Profile() {
    * display to reflect the new listing status without requiring a full refresh.
    */
   const handleListNFT = async () => {
-    if (!listingNFT || !listPrice) return;
+    if (!listingNFT || !listPrice || !address) return;
 
     try {
       setLoading(true);
-      await listOnMarketplace(listingNFT._id, parseFloat(listPrice));
+      await listOnMarketplace(listingNFT._id, parseFloat(listPrice), address);
       
       // Update the NFT status locally
       setMyNFTs(prev => prev.map(nft => 
@@ -110,7 +110,7 @@ function Profile() {
       setLoading(true);
       
       // Call the transfer function
-      await transferIPOwnership(transferNFT._id, transferAddress);
+      await transferIPOwnership(transferNFT._id, address, transferAddress);
       
       // Remove the NFT from the local list since it's been transferred
       setMyNFTs(prev => prev.filter(nft => nft._id !== transferNFT._id));
