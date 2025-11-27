@@ -55,28 +55,31 @@ export default function Navbar() {
   };
   
   return (
-    <div className="navbar bg-base-100/95 shadow-sm fixed top-0 z-1000 h-5 my-auto">
+    <div className="navbar bg-base-100/95 shadow-sm fixed top-0 z-1000 h-14 sm:h-16 px-2 md:px-4">
       <div className="flex-1">
-        <Link href="/">
-            <Image src="/logo.png" height={24} width={150} alt="Logo" />
+        <Link href="/" className="flex items-center">
+            <Image src="/logo.png" height={20} width={120} alt="Logo" className="sm:hidden" />
+            <Image src="/logo.png" height={24} width={150} alt="Logo" className="hidden sm:block" />
         </Link>
       </div>
-      <div className="flex gap-2 md:gap-4">
+      <div className="flex gap-1 sm:gap-2 md:gap-4">
         {!isAuthenticated ? (
           <Link 
             href="/login"
-            className="px-8 py-4 btn outline-main text-main btn-outline btn-md rounded-md hover:bg-main hover:text-white"
+            className="px-3 sm:px-6 md:px-8 py-2 sm:py-3 md:py-4 btn outline-main text-main btn-outline btn-xs sm:btn-sm md:btn-md rounded-md hover:bg-main hover:text-white text-xs sm:text-sm"
           >
-            <FaWallet className="w-4 h-4" />
-            Get Started
+            <FaWallet className="w-3 h-3 sm:w-4 sm:h-4" />
+            <span className="hidden sm:inline">Get Started</span>
+            <span className="sm:hidden">Start</span>
           </Link>
         ) : !isConnected ? (
           <button 
             onClick={connectWallet}
-            className="px-8 py-4 btn bg-main text-white btn-md rounded-md hover:bg-main/90"
+            className="px-3 sm:px-6 md:px-8 py-2 sm:py-3 md:py-4 btn bg-main text-white btn-xs sm:btn-sm md:btn-md rounded-md hover:bg-main/90 text-xs sm:text-sm"
           >
-            <FaWallet className="w-4 h-4" />
-            Connect Wallet
+            <FaWallet className="w-3 h-3 sm:w-4 sm:h-4" />
+            <span className="hidden sm:inline">Connect Wallet</span>
+            <span className="sm:hidden">Connect</span>
           </button>
         ) : (
           <div className="flex items-center gap-1 md:gap-2">
@@ -98,34 +101,34 @@ export default function Navbar() {
 
             {/* KIP Balance Display */}
             <div 
-              className="flex items-center gap-1 px-2 md:px-3 py-1 md:py-2 bg-primary/10 rounded-lg"
+              className="flex items-center gap-1 px-1.5 sm:px-2 md:px-3 py-1 md:py-2 bg-primary/10 rounded-lg"
               role="status"
               aria-label={balanceLoading ? 'Loading KIP balance' : `KIP balance: ${formattedBalance || '0'}`}
             >
               {balanceLoading ? (
                 <FaSpinner 
-                  className="animate-spin text-primary w-3 h-3" 
+                  className="animate-spin text-primary w-2.5 h-2.5 sm:w-3 sm:h-3" 
                   aria-hidden="true"
                 />
               ) : balanceError ? (
                 <FaExclamationTriangle 
-                  className="text-warning w-3 h-3" 
+                  className="text-warning w-2.5 h-2.5 sm:w-3 sm:h-3" 
                   title={balanceError}
                   aria-label={`Balance error: ${balanceError}`}
                 />
               ) : (
                 <span 
-                  className="text-primary font-semibold text-xs md:text-sm"
+                  className="text-primary font-semibold text-[10px] sm:text-xs md:text-sm whitespace-nowrap"
                   aria-label={`KIP token balance: ${formattedBalance || '0'}`}
                 >
-                  {formattedBalance || '0'} KIP
+                  {formattedBalance || '0'} <span className="hidden xs:inline">KIP</span>
                 </span>
               )}
             </div>
             
             {/* Wallet Address */}
             <div 
-              className="badge badge-success px-2 md:px-4 py-2 md:py-3 text-xs md:text-sm"
+              className="badge badge-success px-1.5 sm:px-2 md:px-4 py-1.5 sm:py-2 md:py-3 text-[10px] sm:text-xs md:text-sm"
               role="status"
               aria-label={`Connected wallet address: ${address}`}
             >
@@ -135,16 +138,17 @@ export default function Navbar() {
           </div>
         )}
         
-        <label className="swap swap-rotate cursor-pointer">
+        <label className="swap swap-rotate cursor-pointer btn btn-ghost btn-circle btn-xs sm:btn-sm">
           <input 
             type="checkbox" 
             checked={theme === 'dark'}
             onChange={handleThemeToggle}
             className="hidden"
+            aria-label="Toggle theme"
           />
           {/* Sun icon - shows when dark mode is OFF (light mode) */}
           <svg
-            className={`swap-off h-8 w-8 fill-current ${theme === 'dark' ? 'hidden' : 'block'}`}
+            className={`swap-off h-5 w-5 sm:h-6 sm:w-6 md:h-8 md:w-8 fill-current ${theme === 'dark' ? 'hidden' : 'block'}`}
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24">
             <path
@@ -152,7 +156,7 @@ export default function Navbar() {
           </svg>
           {/* Moon icon - shows when dark mode is ON */}
           <svg
-            className={`swap-on h-8 w-8 fill-current ${theme === 'dark' ? 'block' : 'hidden'}`}
+            className={`swap-on h-5 w-5 sm:h-6 sm:w-6 md:h-8 md:w-8 fill-current ${theme === 'dark' ? 'block' : 'hidden'}`}
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24">
             <path
@@ -161,14 +165,14 @@ export default function Navbar() {
         </label>
     
     <div className="dropdown dropdown-end">
-      <div tabIndex={0} role="button" className="btn btn-ghost btn-circle avatar my-auto">
-        <div tabIndex={0} role="button" className="btn btn-ghost btn-circle">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"> <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h7" /> </svg>
-        </div>
-      </div>
+      <button tabIndex={0} className="btn btn-ghost btn-circle">
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 stroke current" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"> 
+          <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h7" /> 
+        </svg>
+      </button>
       <ul
         tabIndex="-1"
-        className="menu menu-sm dropdown-content bg-base-100 rounded-box z-1 mt-3 w-52 p-2 shadow md:w-100 md:menu-md">
+        className="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1000] mt-3 w-48 sm:w-52 p-2 shadow text-sm">
         {isAuthenticated && isConnected && (
           <>
             <li className="lg:hidden">

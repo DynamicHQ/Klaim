@@ -1,7 +1,6 @@
 'use client';
 
-import { useState } from 'react';
-import { FaChevronDown, FaChevronUp } from 'react-icons/fa';
+'use client';
 
 /**
  * Frequently Asked Questions Page Component
@@ -14,13 +13,6 @@ import { FaChevronDown, FaChevronUp } from 'react-icons/fa';
  * navigation through common user questions and platform explanations.
  */
 export default function FAQ() {
-  const [openIndex, setOpenIndex] = useState(null);
-
-  // FAQ accordion toggle handler for expand/collapse functionality
-  const toggleFAQ = (index) => {
-    setOpenIndex(openIndex === index ? null : index);
-  };
-
   const faqs = [
     {
       category: "Getting Started",
@@ -184,23 +176,23 @@ export default function FAQ() {
   ];
 
   return (
-    <div className="min-h-screen bg-base-200 pt-20 pb-12">
+    <div className="min-h-screen bg-base-200 pt-20 pb-8 md:pb-12">
       <div className="container mx-auto px-4 max-w-4xl">
         {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">
+        <div className="text-center mb-8 md:mb-12">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-3 md:mb-4">
             Frequently Asked Questions
           </h1>
-          <p className="text-lg text-base-content/70">
+          <p className="text-sm sm:text-base md:text-lg text-base-content/70">
             Everything you need to know to get started with Klaimit
           </p>
         </div>
 
         {/* Quick Links */}
-        <div className="card bg-base-100 shadow-xl mb-8">
-          <div className="card-body">
-            <h2 className="card-title text-xl mb-4">Quick Links</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="card bg-base-100 shadow-xl mb-6 md:mb-8">
+          <div className="card-body p-4 md:p-6">
+            <h2 className="card-title text-lg md:text-xl mb-3 md:mb-4">Quick Links</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 md:gap-3">
               <a href="/docs" className="btn btn-outline btn-sm">
                 📚 Technical Documentation
               </a>
@@ -229,59 +221,38 @@ export default function FAQ() {
 
         {/* FAQ Categories */}
         {faqs.map((category, categoryIndex) => (
-          <div key={categoryIndex} className="mb-8">
-            <h2 className="text-2xl font-bold mb-4 text-primary">
+          <div key={categoryIndex} className="mb-6 md:mb-8">
+            <h2 className="text-xl md:text-2xl font-bold mb-3 md:mb-4 text-primary">
               {category.category}
             </h2>
-            <div className="space-y-3">
-              {category.questions.map((faq, faqIndex) => {
-                const globalIndex = `${categoryIndex}-${faqIndex}`;
-                const isOpen = openIndex === globalIndex;
-
-                return (
-                  <div
-                    key={faqIndex}
-                    className="card bg-base-100 shadow-md hover:shadow-lg transition-shadow"
-                  >
-                    <div
-                      className="card-body cursor-pointer"
-                      onClick={() => toggleFAQ(globalIndex)}
-                    >
-                      <div className="flex justify-between items-start gap-4">
-                        <h3 className="font-semibold text-lg flex-1">
-                          {faq.q}
-                        </h3>
-                        <button className="btn btn-ghost btn-sm btn-circle">
-                          {isOpen ? (
-                            <FaChevronUp className="w-4 h-4" />
-                          ) : (
-                            <FaChevronDown className="w-4 h-4" />
-                          )}
-                        </button>
-                      </div>
-                      {isOpen && (
-                        <div className="mt-4 text-base-content/80 whitespace-pre-line">
-                          {faq.a}
-                        </div>
-                      )}
-                    </div>
+            <div className="space-y-2 md:space-y-3">
+              {category.questions.map((faq, faqIndex) => (
+                <div key={faqIndex} className="collapse collapse-arrow bg-base-100 shadow-md hover:shadow-lg transition-shadow border border-base-300">
+                  <input type="checkbox" className="peer" /> 
+                  <div className="collapse-title font-semibold text-sm md:text-base lg:text-lg peer-checked:text-primary">
+                    {faq.q}
                   </div>
-                );
-              })}
+                  <div className="collapse-content">
+                    <p className="text-xs sm:text-sm md:text-base text-base-content/80 whitespace-pre-line pt-2">
+                      {faq.a}
+                    </p>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         ))}
 
         {/* Still Have Questions */}
-        <div className="card bg-primary text-primary-content shadow-xl mt-12">
-          <div className="card-body text-center">
-            <h2 className="card-title justify-center text-2xl mb-2">
+        <div className="card bg-primary text-primary-content shadow-xl mt-8 md:mt-12">
+          <div className="card-body text-center p-4 md:p-6">
+            <h2 className="card-title justify-center text-xl md:text-2xl mb-2">
               Still Have Questions?
             </h2>
-            <p className="mb-4">
+            <p className="mb-3 md:mb-4 text-sm md:text-base">
               Can&apos;t find what you&apos;re looking for? Check out our technical documentation or join our community.
             </p>
-            <div className="flex flex-wrap gap-3 justify-center">
+            <div className="flex flex-col sm:flex-row flex-wrap gap-2 md:gap-3 justify-center">
               <a href="/docs" className="btn btn-outline btn-primary-content">
                 View Documentation
               </a>

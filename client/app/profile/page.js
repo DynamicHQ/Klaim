@@ -159,17 +159,17 @@ function Profile() {
   return (
     <AuthGate>
       <div className="min-h-screen bg-base-200 pt-20">
-        <div className="container mx-auto px-4 py-8">
-          <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold mb-2">My Profile</h1>
-            <p className="text-base-content/70">
+        <div className="container mx-auto px-4 py-4 md:py-8">
+          <div className="text-center mb-6 md:mb-8">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2">My Profile</h1>
+            <p className="text-sm md:text-base text-base-content/70">
               Manage your IP assets and marketplace listings
             </p>
           </div>
 
           {/* Token Faucet Component */}
           {address && (
-            <div className="mb-8">
+            <div className="mb-6 md:mb-8">
               <TokenFaucet 
                 walletAddress={address} 
                 onClaimSuccess={handleClaimSuccess}
@@ -179,15 +179,15 @@ function Profile() {
 
           {/* My NFTs Section */}
           <div className="card bg-base-100 shadow-xl">
-            <div className="card-body">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="card-title text-2xl">
-                  <FaWallet className="mr-2" />
+            <div className="card-body p-4 md:p-6">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                <h2 className="card-title text-xl md:text-2xl">
+                  <FaWallet className="mr-2 flex-shrink-0" />
                   My IP Assets
                 </h2>
                 <button 
                   onClick={() => router.push('/create')}
-                  className="btn btn-primary"
+                  className="btn btn-primary btn-sm md:btn-md w-full sm:w-auto"
                 >
                   <FaUpload className="mr-2" />
                   Create New IP
@@ -200,10 +200,10 @@ function Profile() {
                   <p>Loading your IP assets...</p>
                 </div>
               ) : myNFTs.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                   {myNFTs.map((nft) => (
                     <div key={nft._id} className="card bg-base-200 shadow-md">
-                      <figure className="relative h-48">
+                      <figure className="relative h-40 sm:h-48">
                         <Image
                           src={nft.image_url}
                           alt={nft.name}
@@ -216,27 +216,27 @@ function Profile() {
                           </div>
                         )}
                       </figure>
-                      <div className="card-body p-4">
-                        <h3 className="card-title text-lg">{nft.name}</h3>
-                        <p className="text-sm text-base-content/70 line-clamp-2">
+                      <div className="card-body p-3 md:p-4">
+                        <h3 className="card-title text-base md:text-lg">{nft.name}</h3>
+                        <p className="text-xs md:text-sm text-base-content/70 line-clamp-2">
                           {nft.description}
                         </p>
                         {nft.isListed && (
-                          <p className="text-primary font-bold">
+                          <p className="text-primary font-bold text-sm md:text-base">
                             Listed for: {nft.price} KIP
                           </p>
                         )}
-                        <div className="card-actions justify-end mt-4">
+                        <div className="card-actions justify-end mt-3 md:mt-4 flex-wrap gap-2">
                           {!nft.isListed && (
                             <>
                               <button 
-                                className="btn btn-sm btn-primary"
+                                className="btn btn-xs sm:btn-sm btn-primary"
                                 onClick={() => setListingNFT(nft)}
                               >
                                 List for Sale
                               </button>
                               <button 
-                                className="btn btn-sm btn-outline"
+                                className="btn btn-xs sm:btn-sm btn-outline"
                                 onClick={() => setTransferNFT(nft)}
                               >
                                 <FaPaperPlane className="mr-1" />
@@ -271,8 +271,8 @@ function Profile() {
           {/* List NFT Modal */}
           {listingNFT && (
             <div className="modal modal-open">
-              <div className="modal-box">
-                <h3 className="font-bold text-lg mb-4">List NFT for Sale</h3>
+              <div className="modal-box max-w-md">
+                <h3 className="font-bold text-base md:text-lg mb-4">List NFT for Sale</h3>
                 <div className="mb-4">
                   <p className="mb-2"><strong>NFT:</strong> {listingNFT.name}</p>
                   <div className="form-control">
@@ -315,8 +315,8 @@ function Profile() {
           {/* Transfer NFT Modal */}
           {transferNFT && (
             <div className="modal modal-open">
-              <div className="modal-box">
-                <h3 className="font-bold text-lg mb-4">Transfer NFT</h3>
+              <div className="modal-box max-w-md">
+                <h3 className="font-bold text-base md:text-lg mb-4">Transfer NFT</h3>
                 <div className="mb-4">
                   <p className="mb-2"><strong>NFT:</strong> {transferNFT.name}</p>
                   <div className="form-control">

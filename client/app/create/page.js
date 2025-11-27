@@ -136,26 +136,26 @@ function CreateNFT() {
   return (
     <AuthGate>
       <div className="min-h-screen bg-base-200 pt-20">
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto px-4 py-4 md:py-8">
           <div className="max-w-2xl mx-auto">
-            <div className="text-center mb-8">
-              <h1 className="text-4xl font-bold mb-2">Create IP</h1>
-              <p className="text-base-content/70">
+            <div className="text-center mb-6 md:mb-8">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2">Create IP</h1>
+              <p className="text-sm md:text-base text-base-content/70">
                 Mint your Intellectual Property as an NFT and add it to your collection.
               </p>
             </div>
 
             {!isConnected && (
-              <div className="card bg-base-100 shadow-xl mb-6">
-                <div className="card-body text-center">
-                  <h2 className="card-title justify-center mb-4">
+              <div className="card bg-base-100 shadow-xl mb-4 md:mb-6">
+                <div className="card-body text-center p-4 md:p-6">
+                  <h2 className="card-title justify-center mb-3 md:mb-4 text-lg md:text-xl">
                     <FaWallet className="mr-2" />
                     Connect Your Wallet
                   </h2>
-                  <p className="text-base-content/70 mb-4">
+                  <p className="text-sm md:text-base text-base-content/70 mb-3 md:mb-4">
                     You need to connect your wallet to create an IP
                   </p>
-                  <p className="text-sm text-base-content/50">
+                  <p className="text-xs md:text-sm text-base-content/50">
                     Please use the wallet connector in the navigation bar.
                   </p>
                 </div>
@@ -163,30 +163,30 @@ function CreateNFT() {
             )}
 
             {isConnected && (
-              <div className="alert alert-success mb-6">
-                <FaCheck />
-                <span>Wallet connected: {address?.slice(0, 6)}...{address?.slice(-4)}</span>
+              <div className="alert alert-success mb-4 md:mb-6 text-sm md:text-base">
+                <FaCheck className="flex-shrink-0" />
+                <span className="truncate">Wallet connected: {address?.slice(0, 6)}...{address?.slice(-4)}</span>
               </div>
             )}
 
             {status === 'success' && transactionResult ? (
               <div className="card bg-base-100 shadow-xl">
-                <div className="card-body text-center">
-                  <div className="text-success text-6xl mb-4">
+                <div className="card-body text-center p-4 md:p-6">
+                  <div className="text-success text-4xl md:text-6xl mb-3 md:mb-4">
                     <FaCheck className="mx-auto" />
                   </div>
-                  <h2 className="card-title justify-center text-2xl mb-4">
+                  <h2 className="card-title justify-center text-xl md:text-2xl mb-3 md:mb-4">
                     IP Created Successfully!
                   </h2>
-                  <div className="space-y-2 text-left">
-                    <p><strong>Asset ID:</strong> {transactionResult.assetId}</p>
-                    <p><strong>Transaction:</strong> {transactionResult.transactionHash}</p>
+                  <div className="space-y-2 text-left text-sm md:text-base">
+                    <p className="break-all"><strong>Asset ID:</strong> {transactionResult.assetId}</p>
+                    <p className="break-all"><strong>Transaction:</strong> {transactionResult.transactionHash}</p>
                   </div>
-                  <div className="card-actions justify-center mt-6">
-                    <button onClick={resetForm} className="btn btn-primary">
+                  <div className="card-actions justify-center mt-4 md:mt-6 flex-col sm:flex-row gap-2 w-full">
+                    <button onClick={resetForm} className="btn btn-primary btn-sm md:btn-md w-full sm:w-auto">
                       Create Another
                     </button>
-                    <button onClick={() => router.push('/profile')} className="btn btn-outline">
+                    <button onClick={() => router.push('/profile')} className="btn btn-outline btn-sm md:btn-md w-full sm:w-auto">
                       View My IPs
                     </button>
                   </div>
@@ -194,8 +194,8 @@ function CreateNFT() {
               </div>
             ) : (
               <div className={`card bg-base-100 shadow-xl ${!isConnected ? 'opacity-50 pointer-events-none' : ''}`}>
-                <div className="card-body">
-                  <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="card-body p-4 md:p-6">
+                  <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
                     <div className="form-control">
                       <label className="label">
                         <span className="label-text font-semibold">Title *</span>
@@ -228,11 +228,11 @@ function CreateNFT() {
 
                     <div className="form-control">
                       <label className="label">
-                        <span className="label-text font-semibold">Image *</span>
+                        <span className="label-text font-semibold text-sm md:text-base">Image *</span>
                       </label>
                       <div className="flex flex-col items-center">
                         {imagePreview ? (
-                          <div className="relative mb-4 w-48 h-48">
+                          <div className="relative mb-3 md:mb-4 w-40 h-40 sm:w-48 sm:h-48">
                             <Image
                               src={imagePreview}
                               alt="Preview"
@@ -247,17 +247,17 @@ function CreateNFT() {
                                 const fileInput = document.querySelector('input[type="file"]');
                                 if (fileInput) fileInput.value = '';
                               }}
-                              className="btn btn-sm btn-circle btn-error absolute -top-2 -right-2"
+                              className="btn btn-xs sm:btn-sm btn-circle btn-error absolute -top-2 -right-2"
                               disabled={status === 'loading'}
                             >
                               ×
                             </button>
                           </div>
                         ) : (
-                          <div className="w-48 h-48 border-2 border-dashed border-base-300 rounded-lg flex items-center justify-center mb-4">
+                          <div className="w-40 h-40 sm:w-48 sm:h-48 border-2 border-dashed border-base-300 rounded-lg flex items-center justify-center mb-3 md:mb-4">
                             <div className="text-center">
-                              <FaUpload className="mx-auto text-4xl text-base-content/50 mb-2" />
-                              <p className="text-base-content/70">Upload Image</p>
+                              <FaUpload className="mx-auto text-3xl md:text-4xl text-base-content/50 mb-2" />
+                              <p className="text-sm md:text-base text-base-content/70">Upload Image</p>
                             </div>
                           </div>
                         )}
@@ -265,7 +265,7 @@ function CreateNFT() {
                           type="file"
                           accept="image/*"
                           onChange={handleImageChange}
-                          className="file-input file-input-bordered w-full max-w-xs"
+                          className="file-input file-input-bordered file-input-sm md:file-input-md w-full max-w-xs text-sm"
                           disabled={status === 'loading'}
                           required
                         />
@@ -281,23 +281,23 @@ function CreateNFT() {
                     <div className="form-control">
                       <button
                         type="submit"
-                        className={`btn btn-primary btn-lg w-full ${status === 'loading' ? 'loading' : ''}`}
+                        className={`btn btn-primary btn-md md:btn-lg w-full ${status === 'loading' ? 'loading' : ''}`}
                         disabled={status === 'loading' || !isConnected}
                       >
                         {status === 'loading' ? (
                           <>
                             <FaSpinner className="animate-spin mr-2" />
-                            Creating IP...
+                            <span className="text-sm md:text-base">Creating IP...</span>
                           </>
                         ) : (
-                          'Create IP'
+                          <span className="text-sm md:text-base">Create IP</span>
                         )}
                       </button>
                     </div>
 
                     {status === 'loading' && (
                       <div className="text-center">
-                        <p className="text-base-content/70">
+                        <p className="text-xs md:text-sm text-base-content/70">
                           Please wait while we create your IP... This may take a moment.
                         </p>
                         <progress className="progress progress-primary w-full mt-2"></progress>

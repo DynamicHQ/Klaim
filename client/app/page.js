@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Inter, Oswald } from "next/font/google";
-import { FaCheck, FaWallet } from 'react-icons/fa';
+import { FaCheck, FaWallet, FaDesktop, FaShieldAlt, FaUsers } from 'react-icons/fa';
 import { useAuth } from '@/contexts/AuthContext';
 import { useWallet } from '@/hooks/useWallet';
 
@@ -40,44 +40,44 @@ export default function Home() {
         <div className="absolute inset-0 pointer-events-none overflow-x-auto">
           <Image src="/offsetBlobs.svg" alt="Background decoration" fill className="object-cover object-right" />
         </div>
-        <div className="hero-content text-center bg-background">
-          <div className="max-w-xl md:max-w-lg sm:max-w-md flex flex-col gap-6">
+        <div className="hero-content text-center bg-background px-4">
+          <div className="max-w-xl md:max-w-lg sm:max-w-md w-full flex flex-col gap-4 md:gap-6">
             <div>
-              <h1 className={`text-6xl ${oswald.variable} text-primary-text font-bold break-keep`}>Discover. Collect. </h1>
-              <h1 className={`text-6xl ${oswald.variable} text-primary-text font-bold`}><span className="text-main">Klaim</span> your IP</h1>
+              <h1 className={`text-3xl sm:text-4xl md:text-5xl lg:text-6xl ${oswald.variable} text-primary-text font-bold break-words`}>Discover. Collect. </h1>
+              <h1 className={`text-3xl sm:text-4xl md:text-5xl lg:text-6xl ${oswald.variable} text-primary-text font-bold break-words`}><span className="text-main">Klaim</span> your IP</h1>
             </div>
-            <p className={`${inter.variable} py-6 text-secondary-text text-lg`}>
+            <p className={`${inter.variable} py-4 md:py-6 text-secondary-text text-sm sm:text-base md:text-lg`}>
               Explore the world of digital ownership with Klaim, the premier platform for creating, managing, and trading IPs. Join our community of creators and collectors today!
             </p>
             
             {!isAuthenticated ? (
-              <div className="flex justify-center gap-4">
-                <a href='/login' className="btn bg-main text-white rounded-md px-8 py-6 outline-none transition-transform duration-300 hover:-translate-y-1 flex items-center gap-2">Get Started</a>
-                <a href="/docs" className="btn outline-main btn-outline text-main rounded-md px-8 py-6 transition-transform duration-300 hover:-translate-y-1 hover:text-white hover:bg-main">Learn More</a>
+              <div className="flex flex-col sm:flex-row justify-center gap-3 md:gap-4 w-full">
+                <a href='/login' className="btn bg-main text-white rounded-md px-6 sm:px-8 py-4 md:py-6 outline-none transition-transform duration-300 hover:-translate-y-1 flex items-center gap-2 text-sm md:text-base">Get Started</a>
+                <a href="/docs" className="btn outline-main btn-outline text-main rounded-md px-6 sm:px-8 py-4 md:py-6 transition-transform duration-300 hover:-translate-y-1 hover:text-white hover:bg-main text-sm md:text-base">Learn More</a>
               </div>
             ) : !isConnected ? (
-              <div className="flex flex-col gap-4">
-                <div className="alert alert-info">
-                  <FaWallet />
-                  <span>Please connect your wallet to continue</span>
+              <div className="flex flex-col gap-3 md:gap-4 w-full">
+                <div className="alert alert-info text-sm md:text-base">
+                  <FaWallet className="flex-shrink-0" />
+                  <span className="text-left">Please connect your wallet to continue</span>
                 </div>
-                <div className="flex justify-center gap-4">
-                  <button onClick={connectWallet} className="btn bg-main text-white rounded-md px-8 py-6 outline-none transition-transform duration-300 hover:-translate-y-1 flex items-center gap-2">
+                <div className="flex flex-col sm:flex-row justify-center gap-3 md:gap-4">
+                  <button onClick={connectWallet} className="btn bg-main text-white rounded-md px-6 sm:px-8 py-4 md:py-6 outline-none transition-transform duration-300 hover:-translate-y-1 flex items-center gap-2 text-sm md:text-base">
                     <FaWallet />
                     Connect Wallet
                   </button>
-                  <a href="/docs" className="btn outline-main btn-outline text-main rounded-md px-8 py-6 transition-transform duration-300 hover:-translate-y-1 hover:text-white hover:bg-main">Learn More</a>
+                  <a href="/docs" className="btn outline-main btn-outline text-main rounded-md px-6 sm:px-8 py-4 md:py-6 transition-transform duration-300 hover:-translate-y-1 hover:text-white hover:bg-main text-sm md:text-base">Learn More</a>
                 </div>
               </div>
             ) : (
-              <div className="flex flex-col gap-4">
-                <div className="alert alert-success">
-                  <FaCheck />
-                  <span>Connected: {address?.slice(0, 6)}...{address?.slice(-4)}</span>
+              <div className="flex flex-col gap-3 md:gap-4 w-full">
+                <div className="alert alert-success text-sm md:text-base">
+                  <FaCheck className="flex-shrink-0" />
+                  <span className="truncate">Connected: {address?.slice(0, 6)}...{address?.slice(-4)}</span>
                 </div>
-                <div className="flex justify-center gap-4">
-                  <button onClick={() => router.push('/create')} className="btn bg-main text-white rounded-md px-8 py-6 outline-none transition-transform duration-300 hover:-translate-y-1">Create NFT</button>
-                  <button onClick={() => router.push('/marketplace')} className="btn outline-main btn-outline text-main rounded-md px-8 py-6 transition-transform duration-300 hover:-translate-y-1 hover:text-white hover:bg-main">Marketplace</button>
+                <div className="flex flex-col sm:flex-row justify-center gap-3 md:gap-4">
+                  <button onClick={() => router.push('/create')} className="btn bg-main text-white rounded-md px-6 sm:px-8 py-4 md:py-6 outline-none transition-transform duration-300 hover:-translate-y-1 text-sm md:text-base">Create NFT</button>
+                  <button onClick={() => router.push('/marketplace')} className="btn outline-main btn-outline text-main rounded-md px-6 sm:px-8 py-4 md:py-6 transition-transform duration-300 hover:-translate-y-1 hover:text-white hover:bg-main text-sm md:text-base">Marketplace</button>
                 </div>
               </div>
             )}
@@ -92,37 +92,52 @@ export default function Home() {
           designs and keep full ownership of it. People can see your work, appreciate it, or buy the 
           right to use it but they can’t steal it. It’s safe and simple, all in few clicks.</p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl px-4">
-          <div className="card bg-base-300 shadow-md p-6 rounded-lg">
-            <h3 className={`text-2xl ${oswald.variable} font-semibold mb-4`}>User-Friendly Interface</h3>
-            <p className={`${inter.variable} text-secondary-text`}>Easily navigate and manage your NFT collections with our intuitive platform.</p>
+          <div className="card bg-base-300 shadow-md p-4 md:p-6 rounded-lg">
+            <div className="flex items-center gap-3 mb-3 md:mb-4">
+              <div className="w-12 h-12 rounded-full bg-main/20 flex items-center justify-center flex-shrink-0">
+                <FaDesktop className="w-6 h-6 text-main" />
+              </div>
+              <h3 className={`text-xl md:text-2xl ${oswald.variable} font-semibold`}>User-Friendly Interface</h3>
+            </div>
+            <p className={`${inter.variable} text-secondary-text text-sm md:text-base`}>Easily navigate and manage your NFT collections with our intuitive platform.</p>
           </div>
-          <div className="card bg-base-300 shadow-md p-6 rounded-lg">
-            <h3 className={`text-2xl ${oswald.variable} font-semibold mb-4`}>Secure Transactions</h3>
-            <p className={`${inter.variable} text-secondary-text`}>
+          <div className="card bg-base-300 shadow-md p-4 md:p-6 rounded-lg">
+            <div className="flex items-center gap-3 mb-3 md:mb-4">
+              <div className="w-12 h-12 rounded-full bg-main/20 flex items-center justify-center flex-shrink-0">
+                <FaShieldAlt className="w-6 h-6 text-main" />
+              </div>
+              <h3 className={`text-xl md:text-2xl ${oswald.variable} font-semibold`}>Secure Transactions</h3>
+            </div>
+            <p className={`${inter.variable} text-secondary-text text-sm md:text-base`}>
               Experience peace of mind with our robust security measures for all your NFT dealings.
             </p>
           </div>
-          <div className="card bg-base-300 shadow-md p-6 rounded-lg">
-            <h3 className={`text-2xl ${oswald.variable} font-semibold mb-4`}>Vibrant Community</h3>
-            <p className={`${inter.variable} text-secondary-text`}>Join a thriving community of creators and collectors passionate about digital ownership.</p>
+          <div className="card bg-base-300 shadow-md p-4 md:p-6 rounded-lg">
+            <div className="flex items-center gap-3 mb-3 md:mb-4">
+              <div className="w-12 h-12 rounded-full bg-main/20 flex items-center justify-center flex-shrink-0">
+                <FaUsers className="w-6 h-6 text-main" />
+              </div>
+              <h3 className={`text-xl md:text-2xl ${oswald.variable} font-semibold`}>Vibrant Community</h3>
+            </div>
+            <p className={`${inter.variable} text-secondary-text text-sm md:text-base`}>Join a thriving community of creators and collectors passionate about digital ownership.</p>
           </div>
         </div>
       </section>
       
       {/* How It Works Section */}
-      <section className="w-full py-12 px-4 bg-primary/5">
-        <h2 className={`text-4xl ${oswald.variable} text-primary-text font-bold text-center mb-12`}>How It Works</h2>
-        <h3 className={`text-lg ${oswald.variable} text-secondary-text font-300 text-center mb-12`}>Klaim makes ownership simple:</h3>
-        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8">
+      <section className="w-full py-8 md:py-12 px-4 bg-primary/5">
+        <h2 className={`text-2xl sm:text-3xl md:text-4xl ${oswald.variable} text-primary-text font-bold text-center mb-6 md:mb-12`}>How It Works</h2>
+        <h3 className={`text-base sm:text-lg ${oswald.variable} text-secondary-text font-300 text-center mb-6 md:mb-12 px-4`}>Klaim makes ownership simple:</h3>
+        <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
           {/* Step 1 */}
-          <div className="flex flex-col items-center text-center relative z-100 md:after:content-[''] md:after:absolute md:after:top-10 md:after:left-[65%] md:after:w-[83%] md:after:h-0.5 md:after:bg-main md:after:opacity-30 md:after:z-10">
-            <div className="w-20 h-20 bg-main/10 rounded-full flex items-center justify-center mb-4 relative z-20">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-main" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className="flex flex-col items-center text-center relative z-100 sm:after:content-[''] sm:after:absolute sm:after:top-10 sm:after:left-[65%] sm:after:w-[83%] sm:after:h-0.5 sm:after:bg-main sm:after:opacity-30 sm:after:z-10">
+            <div className="w-16 h-16 md:w-20 md:h-20 bg-main/10 rounded-full flex items-center justify-center mb-3 md:mb-4 relative z-20">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 md:h-10 md:w-10 text-main" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </div>
-            <h3 className={`${oswald.variable} text-xl font-semibold mb-2 text-primary-text`}>Register Assets</h3>
-            <p className={`${inter.variable} text-secondary-text text-sm`}>Upload your idea, share your art, photo, or concept.</p>
+            <h3 className={`${oswald.variable} text-lg md:text-xl font-semibold mb-2 text-primary-text`}>Register Assets</h3>
+            <p className={`${inter.variable} text-secondary-text text-xs md:text-sm`}>Upload your idea, share your art, photo, or concept.</p>
           </div>
 
           {/* Step 2 */}
@@ -161,9 +176,9 @@ export default function Home() {
       </section>
 
       {/* Creator Spotlight Section */}
-      <section className="w-full py-12 flex flex-col items-center gap-8 px-4">
-        <h2 className={`text-4xl ${oswald.variable} text-primary-text font-bold text-center`}>Creator Spotlight</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+      <section className="w-full py-8 md:py-12 flex flex-col items-center gap-6 md:gap-8 px-4">
+        <h2 className={`text-2xl sm:text-3xl md:text-4xl ${oswald.variable} text-primary-text font-bold text-center`}>Creator Spotlight</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 max-w-6xl w-full mx-auto">
           {/* Creator Card 1 */}
           <div className="card bg-white shadow-md rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
             <div className="aspect-square overflow-hidden bg-gray-200 relative">
@@ -236,10 +251,10 @@ export default function Home() {
       </section>
 
       {/* Provenance & Trust Section */}
-      <section className="w-full py-12 px-4 bg-primary/5">
-        <h2 className={`text-4xl ${oswald.variable} text-primary-text font-bold text-center mb-12`}>Provenance & Trust</h2>
+      <section className="w-full py-8 md:py-12 px-4 bg-primary/5">
+        <h2 className={`text-2xl sm:text-3xl md:text-4xl ${oswald.variable} text-primary-text font-bold text-center mb-6 md:mb-12`}>Provenance & Trust</h2>
         <div className="max-w-4xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 items-center">
             {/* Left side - Infographic */}
             <div className="flex flex-col gap-8">
               <div className="flex items-start gap-4">
@@ -296,9 +311,9 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="w-full bg-black/70 text-white py-12 px-4">
+      <footer className="w-full bg-black/70 text-white py-8 md:py-12 px-4">
         <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 mb-6 md:mb-8">
             {/* Brand */}
             <div className="flex flex-col gap-4">
               <h3 className={`${oswald.variable} text-xl font-bold`}>Klaim</h3>

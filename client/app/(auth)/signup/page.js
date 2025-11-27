@@ -40,21 +40,21 @@ export default function Signup() {
     };
 
     return (
-        <div className="flex flex-col items-center justify-center min-h-screen py-2 gap-6">
-            <h1 className="text-4xl font-bold mb-6 text-primary-text">Signup</h1>
-            <form className="flex flex-col gap-4 w-80" onSubmit={(e) => e.preventDefault()}>
-                <input type="text" placeholder="Username" className="input input-bordered" />
+        <div className="flex flex-col items-center justify-center min-h-screen py-4 md:py-8 px-4 gap-4 md:gap-6">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 md:mb-6 text-primary-text text-center">Signup</h1>
+            <form className="flex flex-col gap-3 md:gap-4 w-full max-w-sm" onSubmit={(e) => e.preventDefault()}>
+                <input type="text" placeholder="Username" className="input input-bordered input-sm md:input-md w-full" />
                 <button
                     onClick={handleConnectWallet}
                     type="button"
-                    className={`btn btn-outline btn-sm ${isConnecting ? 'loading' : ''}`}
+                    className={`btn btn-outline btn-sm md:btn-md w-full ${isConnecting ? 'loading' : ''}`}
                     disabled={isConnecting}
                 >
                     <FaWallet className="w-4 h-4" />
                     {isConnecting ? 'Connecting...' : 'Connect'}
                 </button>
             </form>
-            <div className="text-secondary-text font-300">
+            <div className="text-secondary-text font-300 text-sm md:text-base text-center">
                 Already have an account?
                 <a href="/login" className="text-main font-bold"> Login</a>
             </div>

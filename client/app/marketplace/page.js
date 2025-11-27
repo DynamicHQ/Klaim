@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { FaSearch, FaSpinner, FaShieldAlt, FaCheckCircle, FaExclamationTriangle } from 'react-icons/fa';
@@ -32,10 +32,6 @@ export default function Marketplace() {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    fetchProducts();
-  }, []);
-
   /**
    * Marketplace listings fetcher with comprehensive error handling.
    * 
@@ -44,7 +40,7 @@ export default function Marketplace() {
    * user feedback during the loading process and handles various failure
    * scenarios with appropriate error messages and retry capabilities.
    */
-  const fetchProducts = async () => {
+  const fetchProducts = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
@@ -57,7 +53,11 @@ export default function Marketplace() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchProducts();
+  }, [fetchProducts]);
 
   useEffect(() => {
     if (searchQuery.trim() === '') {
@@ -72,9 +72,9 @@ export default function Marketplace() {
   }, [searchQuery, products]);
 
   // Product selection handler for modal display
-  const handleProductClick = (product) => {
+  const handleProductClick = useCallback((product) => {
     setSelectedProduct(product);
-  };
+  }, []);
 
   /**
    * Secure purchase handler with mandatory transaction verification.
@@ -85,7 +85,7 @@ export default function Marketplace() {
    * the transaction security system to prevent bot attacks while providing
    * comprehensive user feedback throughout the verification and purchase process.
    */
-  const handleBuyNow = async (product) => {
+  const handleBuyNow = useCallback(async (product) => {
     if (!isConnected) {
       alert('Please connect your wallet first');
       return;
@@ -115,15 +115,41 @@ export default function Marketplace() {
       console.error('Purchase failed:', err);
       alert(`Purchase failed: ${err.message}`);
     }
-  };
+  }, [isConnected, executeSecureTransaction, address, router]);
 
   if (loading) {
     return (
       <div className="min-h-screen bg-base-200 pt-20">
-        <div className="container mx-auto px-4 py-8">
-          <div className="text-center">
-            <FaSpinner className="animate-spin text-4xl text-primary mx-auto mb-4" />
-            <p className="text-lg">Loading marketplace...</p>
+        <div className="container mx-auto px-4 py-4 md:py-8">
+          <div className="text-center mb-6 md:mb-8">
+            <div className="skeleton h-10 w-64 mx-auto mb-2"></div>
+            <div className="skeleton h-4 w-48 mx-auto"></div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-3 md:gap-4 mb-6 md:mb-8 max-w-2xl mx-auto">
+            <div className="skeleton h-12 flex-1"></div>
+          </div>
+
+          <div className="text-center mb-6">
+            <div className="skeleton h-4 w-32 mx-auto"></div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+            {[...Array(10)].map((_, index) => (
+              <div key={index} className="w-full">
+                <div className="card bg-base-100 shadow-xl">
+                  <div className="skeleton h-48 sm:h-56 md:h-64 w-full"></div>
+                  <div className="card-body p-3 md:p-4">
+                    <div className="skeleton h-6 w-full mb-2"></div>
+                    <div className="skeleton h-4 w-3/4"></div>
+                    <div className="flex justify-between items-center mt-3 md:mt-4">
+                      <div className="skeleton h-6 w-20"></div>
+                      <div className="skeleton h-8 w-24"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
@@ -145,7 +171,7 @@ export default function Marketplace() {
   return (
     <div className="min-h-screen bg-base-200 pt-20">
       <title>Klaim | Marketplace</title>
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-4 md:py-8">
         {/* Transaction Verification Status */}
         {stepMessage && (
           <div className={`alert mb-6 ${
@@ -166,14 +192,14 @@ export default function Marketplace() {
           </div>
         )}
 
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold mb-2">NFT Marketplace</h1>
-          <p className="text-base-content/70">
+        <div className="text-center mb-6 md:mb-8">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2">NFT Marketplace</h1>
+          <p className="text-sm md:text-base text-base-content/70">
             Discover and collect unique digital assets
           </p>
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-4 mb-8 max-w-2xl mx-auto">
+        <div className="flex flex-col sm:flex-row gap-3 md:gap-4 mb-6 md:mb-8 max-w-2xl mx-auto">
           <div className="relative flex-1">
             <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-base-content/50" />
             <input
@@ -193,14 +219,14 @@ export default function Marketplace() {
         </div>
 
         {filteredProducts.length > 0 ? (
-          <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {filteredProducts.map((product) => (
-              <div key={product._id} className="break-inside-avoid mb-4">
+              <div key={product._id} className="w-full">
                 <div 
                   className="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 cursor-pointer transform hover:-translate-y-1"
                   onClick={() => handleProductClick(product)}
                 >
-                  <figure className="relative overflow-hidden h-64">
+                  <figure className="relative overflow-hidden h-48 sm:h-56 md:h-64">
                     <Image
                       src={product.image_url}
                       alt={product.name}
@@ -214,13 +240,13 @@ export default function Marketplace() {
                     </div>
                   </figure>
                   
-                  <div className="card-body p-4">
-                    <h3 className="card-title text-lg font-bold line-clamp-2">
+                  <div className="card-body p-3 md:p-4">
+                    <h3 className="card-title text-sm md:text-base lg:text-lg font-bold line-clamp-2">
                       {product.name}
                     </h3>
                     
-                    <div className="card-actions justify-between items-center mt-4">
-                      <div className="text-lg font-bold text-primary">
+                    <div className="card-actions justify-between items-center mt-3 md:mt-4">
+                      <div className="text-sm md:text-base lg:text-lg font-bold text-primary">
                         {product.price} KIP
                       </div>
                       <SecurityTooltip content="Secure purchase with wallet verification to prevent bot attacks">
@@ -264,9 +290,9 @@ export default function Marketplace() {
 
         {selectedProduct && (
           <div className="modal modal-open">
-            <div className="modal-box max-w-2xl">
-              <h3 className="font-bold text-2xl mb-4">{selectedProduct.name}</h3>
-              <div className="relative w-full h-96 mb-4">
+            <div className="modal-box max-w-2xl max-h-[90vh] overflow-y-auto">
+              <h3 className="font-bold text-xl md:text-2xl mb-4">{selectedProduct.name}</h3>
+              <div className="relative w-full h-64 md:h-96 mb-4">
                 <Image
                   src={selectedProduct.image_url}
                   alt={selectedProduct.name}

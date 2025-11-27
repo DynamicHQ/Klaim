@@ -14,3 +14,230 @@
 @theme dark {
   --color-main: var(--main);
 }
+
+/* Responsive Typography */
+html {
+  font-size: 16px;
+}
+
+@media (max-width: 640px) {
+  html {
+    font-size: 14px;
+  }
+}
+
+/* Responsive Container Padding */
+.container {
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+@media (min-width: 768px) {
+  .container {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+
+/* Responsive Card Spacing */
+.card-body {
+  padding: 1rem;
+}
+
+@media (min-width: 768px) {
+  .card-body {
+    padding: 2rem;
+  }
+}
+
+/* Responsive Modal */
+.modal-box {
+  max-width: 95vw;
+  margin: 1rem;
+}
+
+@media (min-width: 768px) {
+  .modal-box {
+    max-width: 32rem;
+    margin: 0;
+  }
+}
+
+/* Responsive Tables */
+.table {
+  font-size: 0.875rem;
+}
+
+@media (max-width: 640px) {
+  .table {
+    font-size: 0.75rem;
+  }
+  
+  .table th,
+  .table td {
+    padding: 0.5rem 0.25rem;
+  }
+}
+
+/* Responsive Images */
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Responsive Buttons */
+.btn {
+  min-height: 2.5rem;
+}
+
+@media (max-width: 640px) {
+  .btn {
+    min-height: 2rem;
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+    font-size: 0.875rem;
+  }
+}
+
+/* Responsive Grid Gaps */
+.grid {
+  gap: 1rem;
+}
+
+@media (min-width: 768px) {
+  .grid {
+    gap: 1.5rem;
+  }
+}
+
+/* Responsive Hero Section */
+.hero {
+  padding: 2rem 1rem;
+}
+
+@media (min-width: 768px) {
+  .hero {
+    padding: 4rem 2rem;
+  }
+}
+
+/* Responsive Navbar */
+.navbar {
+  padding: 0.5rem 1rem;
+  min-height: 4rem;
+}
+
+@media (max-width: 640px) {
+  .navbar {
+    padding: 0.5rem;
+    min-height: 3.5rem;
+  }
+}
+
+/* Responsive Text Truncation */
+.line-clamp-1 {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Responsive Overflow */
+@media (max-width: 640px) {
+  .overflow-x-auto {
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Responsive Form Elements */
+.input,
+.textarea,
+.select {
+  font-size: 1rem;
+}
+
+@media (max-width: 640px) {
+  .input,
+  .textarea,
+  .select {
+    font-size: 0.875rem;
+  }
+}
+
+/* Responsive Alert */
+.alert {
+  padding: 0.75rem;
+  font-size: 0.875rem;
+}
+
+@media (min-width: 768px) {
+  .alert {
+    padding: 1rem;
+    font-size: 1rem;
+  }
+}
+
+/* Responsive Badge */
+.badge {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+}
+
+@media (min-width: 768px) {
+  .badge {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+  }
+}
+
+/* Prevent horizontal scroll */
+body {
+  overflow-x: hidden;
+}
+
+/* Responsive Stat */
+.stat {
+  padding: 1rem;
+}
+
+@media (min-width: 768px) {
+  .stat {
+    padding: 1.5rem;
+  }
+}
+
+.stat-value {
+  font-size: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .stat-value {
+    font-size: 2rem;
+  }
+}
+
+/* Responsive Steps */
+.steps-vertical .step {
+  min-height: 3rem;
+}
+
+@media (max-width: 640px) {
+  .steps-vertical .step {
+    min-height: 2.5rem;
+    font-size: 0.875rem;
+  }
+}
