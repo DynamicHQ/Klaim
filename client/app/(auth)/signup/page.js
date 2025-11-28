@@ -1,10 +1,12 @@
 'use client';
 import { useState } from 'react';
 import { FaWallet } from 'react-icons/fa';
+import { useRouter } from 'next/navigation';
+import { connectMetaMask, signMessage } from '@/utils/wallet';
+import { syncWallet } from '@/utils/api';
 
-/**
+/*
  * User Signup Page Component
- * 
  * This component provides a user registration interface with wallet connection
  * functionality for creating new accounts on the Klaim platform. It implements
  * a simplified signup flow with username collection and MetaMask wallet
@@ -13,10 +15,10 @@ import { FaWallet } from 'react-icons/fa';
  */
 export default function Signup() {
     const [isConnecting, setIsConnecting] = useState(false);
+    const router = useRouter();
 
-    /**
+    /*
      * Wallet connection handler for signup process.
-     * 
      * This function manages MetaMask wallet connection during the signup
      * process including permission requests, connection state management,
      * and user feedback. It provides proper error handling for missing
@@ -25,15 +27,40 @@ export default function Signup() {
      */
     const handleConnectWallet = async () => {
         setIsConnecting(true);
+
         try {
-            if (typeof window !== 'undefined' && window.ethereum) {
-                await window.ethereum.request({ method: 'eth_requestAccounts' });
-                alert('Wallet connected! (Mock mode)');
-            } else {
-                alert('Please install MetaMask');
+            // 1) request connection and get address
+            const address = await connectMetaMask();
+
+            // 2) sign a lightweight message to verify user's intent
+            try {
+                await signMessage('Sign up to Klaim');
+            } catch (signErr) {
+                console.warn('User declined to sign message at signup:', signErr?.message || signErr);
+                // Not fatal for signup — continue to sync wallet
             }
-        } catch (error) {
-            console.error('Error connecting wallet:', error);
+
+            // 3) inform backend about the wallet address (sync /users/sync-wallet)
+            try {
+                await syncWallet(address);
+            } catch (syncErr) {
+                // Keep going but show a warning in console
+                console.error('Failed to sync wallet with backend:', syncErr);
+            }
+
+            // store address locally for convenience
+            try {
+                localStorage.setItem('walletAddress', address);
+            } catch (e) {
+                /* ignore in SSR or when storage blocked */
+            }
+
+            // finally navigate to home page
+            router.push('/');
+        } catch (err) {
+            console.error('Failed to connect MetaMask during signup:', err);
+            // Consider showing user-facing UI errors — keep console for now
+            alert(err?.message || 'Failed to connect wallet.');
         } finally {
             setIsConnecting(false);
         }

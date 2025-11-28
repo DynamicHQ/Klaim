@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { FaWallet } from 'react-icons/fa';
 import { useAuth } from '@/contexts/AuthContext';
-import { isMetaMaskInstalled } from '@/utils/wallet';
+import { connectWallet, signMessage } from '@/utils/wallet';
 
 export default function Login() {
   const router = useRouter();
@@ -13,22 +13,12 @@ export default function Login() {
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [error, setError] = useState(null);
 
-  const handleConnectWallet = async () => {
+  const handleConnectWallet = () => {
     setIsConnecting(true);
     setError(null);
-    
-    try {
-      if (!isMetaMaskInstalled()) {
-        throw new Error('MetaMask is not installed. Please install MetaMask to continue.');
-      }
-      
-      await connectWallet();
-    } catch (error) {
-      console.error('Wallet connection error:', error);
-      setError(error.message || 'Failed to connect wallet');
-    } finally {
-      setIsConnecting(false);
-    }
+    connectWallet();
+    signMessage('signin to klaim');
+    setIsConnecting(false);
   };
 
   const handleLogin = async () => {

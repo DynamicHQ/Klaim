@@ -487,6 +487,9 @@ export async function getTokenBalance(walletAddress) {
  * @returns {Promise<Object>} Server status
  */
 export async function pingServer() {
+  const startTime = Date.now();
+  console.log(`🏓 Pinging server at ${API_ENDPOINT}/assets...`);
+  
   try {
     const response = await fetch(`${API_ENDPOINT}/assets`, {
       method: 'GET',
@@ -497,15 +500,29 @@ export async function pingServer() {
       signal: AbortSignal.timeout(10000) // 10 second timeout
     });
     
+    const duration = Date.now() - startTime;
+    console.log(`🏓 Server responded in ${duration}ms with status ${response.status}`);
+    
     // Any response (even 401 unauthorized) means the server is awake
     if (response.status < 500) {
-      return { success: true, status: 'online' };
+      console.log('✅ Server is online and responding');
+      return { success: true, status: 'online', responseTime: duration, statusCode: response.status };
     }
     
-    return { success: false, status: 'error', statusCode: response.status };
+    console.warn(`⚠️ Server returned error status: ${response.status}`);
+    return { success: false, status: 'error', statusCode: response.status, responseTime: duration };
   } catch (error) {
-    console.warn('Server ping failed:', error.message);
-    return { success: false, status: 'offline', error: error.message };
+    const duration = Date.now() - startTime;
+    console.error(`❌ Server ping failed after ${duration}ms:`, error.message);
+    
+    // Check for specific error types
+    if (error.name === 'AbortError') {
+      console.warn('⏰ Server ping timed out - server may be sleeping');
+    } else if (error.message.includes('fetch')) {
+      console.warn('🌐 Network error - check internet connection');
+    }
+    
+    return { success: false, status: 'offline', error: error.message, responseTime: duration };
   }
 }
 

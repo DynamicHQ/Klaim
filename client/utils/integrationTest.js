@@ -149,6 +149,36 @@ export const testTransactionTypes = () => {
 };
 
 /**
+ * Test server connectivity
+ */
+export const testServerConnection = async () => {
+  console.log('🧪 Testing server connection...');
+  
+  try {
+    const { pingServer } = await import('./api');
+    const result = await pingServer();
+    
+    if (result.success) {
+      console.log(`✅ Server is reachable (${result.responseTime}ms)`);
+      console.log(`📋 Status: ${result.status}, Response code: ${result.statusCode}`);
+      return true;
+    } else {
+      console.log(`❌ Server ping failed: ${result.status}`);
+      if (result.error) {
+        console.log(`   Error: ${result.error}`);
+      }
+      if (result.statusCode) {
+        console.log(`   HTTP Status: ${result.statusCode}`);
+      }
+      return false;
+    }
+  } catch (error) {
+    console.error('❌ Server connection test failed:', error.message);
+    return false;
+  }
+};
+
+/**
  * Test contract deployment status
  */
 export const testContractDeployment = async () => {
@@ -191,6 +221,7 @@ export const runIntegrationTests = async () => {
   console.log('🚀 Running KIP Balance and Transaction Security Integration Tests...\n');
   
   const results = {
+    serverConnection: await testServerConnection(),
     contractDeployment: await testContractDeployment(),
     messageGeneration: testMessageGeneration(),
     balanceFormatting: testBalanceFormatting(),
@@ -207,6 +238,13 @@ export const runIntegrationTests = async () => {
   } else {
     console.log('⚠️  Some tests failed. Please check the implementation.');
     
+    if (!results.serverConnection) {
+      console.log('\n💡 Server connection issues detected:');
+      console.log('   - Check your internet connection');
+      console.log('   - Verify the API endpoint in .env is correct');
+      console.log('   - Server may be starting up (try again in a moment)');
+    }
+    
     if (!results.contractDeployment) {
       console.log('\n💡 Contract deployment issues detected:');
       console.log('   - Ensure you are connected to Story Protocol Testnet');
@@ -218,11 +256,36 @@ export const runIntegrationTests = async () => {
   return results;
 };
 
+/**
+ * Quick server ping test for manual testing
+ * Call this from browser console: window.testServerPing()
+ */
+export const quickServerPingTest = async () => {
+  console.log('🏓 Manual server ping test...');
+  const result = await testServerConnection();
+  
+  if (result) {
+    console.log('🎉 Server ping test PASSED - server is reachable!');
+  } else {
+    console.log('❌ Server ping test FAILED - check console for details');
+  }
+  
+  return result;
+};
+
+// Make it available globally for easy testing
+if (typeof window !== 'undefined') {
+  window.testServerPing = quickServerPingTest;
+  window.runAllTests = runIntegrationTests;
+}
+
 // Export for use in development/testing
 export default {
   testMessageGeneration,
   testBalanceFormatting,
   testTransactionTypes,
+  testServerConnection,
   testContractDeployment,
-  runIntegrationTests
+  runIntegrationTests,
+  quickServerPingTest
 };

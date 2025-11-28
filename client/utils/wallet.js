@@ -8,7 +8,7 @@ export function isMetaMaskInstalled() {
   return typeof window !== 'undefined' && typeof window.ethereum !== 'undefined';
 }
 
-/**
+/*
  * Connect to MetaMask and get wallet address
  * @returns {Promise<string>} Connected wallet address
  * @throws {Error} If MetaMask is not installed or user rejects connection
@@ -32,14 +32,14 @@ export async function connectMetaMask() {
     // Handle specific MetaMask error codes
     if (error.code === 4001) {
       throw new Error('You rejected the wallet connection request.');
-    } else if (error.code === -32002) {
+    } else if (error.code === 32002) {
       throw new Error('Please check your wallet for a pending connection request.');
     }
     throw error;
   }
 }
 
-/**
+/*
  * Sign a message with the connected wallet
  * @param {string} message - Message to sign
  * @returns {Promise<string>} Signature
@@ -76,7 +76,7 @@ export async function signMessage(message) {
   }
 }
 
-/**
+/*
  * Get currently connected accounts
  * @returns {Promise<string[]>} Array of connected wallet addresses
  */
@@ -96,7 +96,7 @@ export async function getAccounts() {
   }
 }
 
-/**
+/*
  * Transfer IP/NFT to another wallet
  * @param {string} contractAddress - NFT contract address
  * @param {string} tokenId - Token ID to transfer
