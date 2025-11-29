@@ -1,6 +1,5 @@
-/**
+/*
  * Frontend API Utilities for Backend Communication
- * 
  * This module provides comprehensive API utilities for communicating with the
  * Klaim backend including authentication management, asset operations, marketplace
  * interactions, and user management. It implements JWT token handling, automatic
@@ -24,7 +23,7 @@ export function setAuthToken(token) {
   }
 }
 
-/**
+/*
  * Clear JWT token
  */
 export function clearAuthToken() {
@@ -34,7 +33,7 @@ export function clearAuthToken() {
   }
 }
 
-/**
+/*
  * Get current JWT token
  * @returns {string|null} JWT token or null
  */
@@ -54,7 +53,7 @@ export function getAuthToken() {
   return null;
 }
 
-/**
+/*
  * Set callback for unauthorized responses
  * @param {Function} callback - Function to call on 401 responses
  */
@@ -62,7 +61,7 @@ export function setOnUnauthorizedCallback(callback) {
   onUnauthorizedCallback = callback;
 }
 
-/**
+/*
  * Get headers with optional authorization
  * @returns {Object} Headers object
  */
@@ -255,7 +254,7 @@ async function deleteJSON(path) {
 
 // Authentication endpoints
 
-/**
+/*
  * Get nonce for wallet authentication
  * @param {string} walletAddress - Ethereum wallet address
  * @returns {Promise<{nonce: string}>} Nonce object
@@ -264,7 +263,7 @@ export async function getNonce(walletAddress) {
   return getJSON(`/auth/nonce/${walletAddress}`);
 }
 
-/**
+/*
  * Authenticate with wallet signature
  * @param {string} walletAddress - Ethereum wallet address
  * @param {string} signature - Signed message signature
@@ -277,7 +276,7 @@ export async function authenticateWithSignature(walletAddress, signature) {
   });
 }
 
-/**
+/*
  * Sign up a new user
  * @param {string} username - User's profile name
  * @param {string} walletAddress - Ethereum wallet address
@@ -287,7 +286,7 @@ export async function signupUser(username, walletAddress) {
   return postJSON('/users/signup', { username, walletAddress });
 }
 
-/**
+/*
  * A high-level function to create a complete asset.
  * It uploads the image, then creates the NFT and IP records on the backend.
  * @param {object} assetData - Contains title, description, and image file.
@@ -351,7 +350,7 @@ export async function createIP(ip_info, nftId) { // Renamed from createIp for co
   return postJSON('/assets/ip', body);
 }
 
-/**
+/*
  * Update blockchain data for an asset after blockchain transactions complete
  * @param {string} assetId - Asset ID to update
  * @param {Object} data - Blockchain data to update
@@ -365,7 +364,7 @@ export async function updateBlockchainData(assetId, data) {
   return patchJSON(`/assets/${assetId}/blockchain`, data);
 }
 
-/**
+/*
  * List an asset on the marketplace
  * @param {string} assetId - Asset ID to list
  * @param {number} price - Listing price
@@ -380,9 +379,8 @@ export async function listOnMarketplace(assetId, price, seller) {
   });
 }
 
-/**
+/*
  * Marketplace purchase execution with ownership transfer.
- * 
  * This function handles the complete IP asset purchase process including
  * payment processing, ownership transfer, and marketplace state updates.
  * It communicates with the backend to execute the purchase transaction
@@ -406,7 +404,24 @@ export async function getUserIPs(walletAddress) {
   return getJSON(`/assets/user/${walletAddress}`);
 }
 
-/**
+/*
+ * Get all assets in the system
+ * @returns {Promise<Array>} Array of all assets
+ */
+export async function getAllAssets() {
+  return getJSON('/assets');
+}
+
+/*
+ * Get a specific asset by ID
+ * @param {string} assetId - Asset ID to retrieve
+ * @returns {Promise<Object>} Asset details
+ */
+export async function getAssetById(assetId) {
+  return getJSON(`/assets/${assetId}`);
+}
+
+/*
  * Transfer IP ownership to another wallet
  * @param {string} assetId - Asset/IP ID to transfer
  * @param {string} fromAddress - Current owner wallet address
@@ -481,49 +496,185 @@ export async function getTokenBalance(walletAddress) {
 }
 
 /**
- * Ping the backend server to wake it up
- * This is useful for services that sleep after inactivity (like Render free tier)
- * Uses the /assets endpoint which is a simple GET request
- * @returns {Promise<Object>} Server status
+ * Ping a single route for quick testing
+ * @param {string} route - Route to ping (e.g., '/assets', '/auth/nonce/test')
+ * @returns {Promise<Object>} Single route ping result with success status, response time, and status code
  */
-export async function pingServer() {
+export async function pingSingleRoute(route) {
   const startTime = Date.now();
-  console.log(`🏓 Pinging server at ${API_ENDPOINT}/assets...`);
+  console.log(`🏓 Pinging single route: ${API_ENDPOINT}${route}`);
   
   try {
-    const response = await fetch(`${API_ENDPOINT}/assets`, {
+    const response = await fetch(`${API_ENDPOINT}${route}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json'
       },
-      // Add timeout to prevent hanging
-      signal: AbortSignal.timeout(10000) // 10 second timeout
+      signal: AbortSignal.timeout(5000) // 5 second timeout
     });
     
     const duration = Date.now() - startTime;
-    console.log(`🏓 Server responded in ${duration}ms with status ${response.status}`);
+    const success = response.status < 500;
     
-    // Any response (even 401 unauthorized) means the server is awake
-    if (response.status < 500) {
-      console.log('✅ Server is online and responding');
-      return { success: true, status: 'online', responseTime: duration, statusCode: response.status };
-    }
+    console.log(`${success ? '✅' : '❌'} Route ${route} responded in ${duration}ms (${response.status})`);
     
-    console.warn(`⚠️ Server returned error status: ${response.status}`);
-    return { success: false, status: 'error', statusCode: response.status, responseTime: duration };
+    return {
+      success,
+      route,
+      statusCode: response.status,
+      responseTime: duration,
+      timestamp: new Date().toISOString()
+    };
+    
   } catch (error) {
     const duration = Date.now() - startTime;
-    console.error(`❌ Server ping failed after ${duration}ms:`, error.message);
+    console.error(`❌ Route ${route} failed after ${duration}ms:`, error.message);
+    
+    return {
+      success: false,
+      route,
+      error: error.message,
+      responseTime: duration,
+      timestamp: new Date().toISOString()
+    };
+  }
+}
+
+/**
+ * Comprehensive server health check that tests multiple critical backend routes
+ * This is useful for services that sleep after inactivity (like Render free tier)
+ * Tests critical routes: assets, auth, users, faucet, marketplace
+ * @returns {Promise<Object>} Detailed server status with route-by-route results
+ * @example
+ * const result = await pingServer();
+ * console.log(`Server status: ${result.status}`);
+ * console.log(`Response time: ${result.responseTime}ms`);
+ * console.log(`Routes tested: ${Object.keys(result.routes).length}`);
+ */
+export async function pingServer() {
+  const startTime = Date.now();
+  console.log(`🏓 Starting comprehensive server ping at ${API_ENDPOINT}...`);
+  
+  // Define critical routes to test
+  const routes = [
+    { path: '/assets', name: 'Assets API', critical: true },
+    { path: '/auth/nonce/0x0000000000000000000000000000000000000000', name: 'Auth API', critical: true },
+    { path: '/users/test', name: 'Users API', critical: false }, // This will 404 but shows server is up
+    { path: '/faucet/balance/0x0000000000000000000000000000000000000000', name: 'Faucet API', critical: false },
+    { path: '/assets/marketplace', name: 'Marketplace API', critical: false }
+  ];
+
+  const results = {
+    success: false,
+    status: 'testing',
+    responseTime: 0,
+    routes: {},
+    errors: [],
+    warnings: []
+  };
+
+  try {
+    // Test each route
+    for (const route of routes) {
+      const routeStartTime = Date.now();
+      console.log(`🔍 Testing ${route.name} at ${route.path}...`);
+      
+      try {
+        const response = await fetch(`${API_ENDPOINT}${route.path}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          signal: AbortSignal.timeout(8000) // 8 second timeout per route
+        });
+        
+        const routeDuration = Date.now() - routeStartTime;
+        const routeResult = {
+          success: response.status < 500,
+          statusCode: response.status,
+          responseTime: routeDuration,
+          critical: route.critical
+        };
+        
+        results.routes[route.name] = routeResult;
+        
+        if (routeResult.success) {
+          console.log(`✅ ${route.name} responded in ${routeDuration}ms (${response.status})`);
+        } else {
+          console.warn(`⚠️ ${route.name} returned ${response.status} in ${routeDuration}ms`);
+          if (route.critical) {
+            results.errors.push(`Critical route ${route.name} failed with status ${response.status}`);
+          } else {
+            results.warnings.push(`Non-critical route ${route.name} returned ${response.status}`);
+          }
+        }
+        
+      } catch (routeError) {
+        const routeDuration = Date.now() - routeStartTime;
+        const routeResult = {
+          success: false,
+          error: routeError.message,
+          responseTime: routeDuration,
+          critical: route.critical
+        };
+        
+        results.routes[route.name] = routeResult;
+        console.error(`❌ ${route.name} failed after ${routeDuration}ms:`, routeError.message);
+        
+        if (route.critical) {
+          results.errors.push(`Critical route ${route.name} failed: ${routeError.message}`);
+        } else {
+          results.warnings.push(`Non-critical route ${route.name} failed: ${routeError.message}`);
+        }
+      }
+    }
+    
+    // Calculate overall results
+    const totalDuration = Date.now() - startTime;
+    results.responseTime = totalDuration;
+    
+    // Check if critical routes are working
+    const criticalRoutes = routes.filter(r => r.critical);
+    const criticalSuccess = criticalRoutes.every(route => 
+      results.routes[route.name] && results.routes[route.name].success
+    );
+    
+    if (criticalSuccess) {
+      results.success = true;
+      results.status = 'online';
+      console.log(`✅ Server is fully online! All critical routes responding (${totalDuration}ms total)`);
+      
+      // Log summary
+      const successCount = Object.values(results.routes).filter(r => r.success).length;
+      const totalCount = routes.length;
+      console.log(`📊 Route Summary: ${successCount}/${totalCount} routes responding`);
+      
+    } else {
+      results.success = false;
+      results.status = 'partial';
+      console.warn(`⚠️ Server partially online - some critical routes failing (${totalDuration}ms total)`);
+    }
+    
+  } catch (error) {
+    const duration = Date.now() - startTime;
+    results.responseTime = duration;
+    results.success = false;
+    results.status = 'offline';
+    results.errors.push(`Overall ping failed: ${error.message}`);
+    
+    console.error(`❌ Server ping completely failed after ${duration}ms:`, error.message);
     
     // Check for specific error types
     if (error.name === 'AbortError') {
       console.warn('⏰ Server ping timed out - server may be sleeping');
+      results.warnings.push('Server ping timed out - server may be starting up');
     } else if (error.message.includes('fetch')) {
       console.warn('🌐 Network error - check internet connection');
+      results.warnings.push('Network error - check internet connection');
     }
-    
-    return { success: false, status: 'offline', error: error.message, responseTime: duration };
   }
+  
+  return results;
 }
 
 export default {
@@ -549,6 +700,8 @@ export default {
   purchaseIP,
   getMarketplaceListings,
   getUserIPs,
+  getAllAssets,
+  getAssetById,
   transferIPOwnership,
   // Faucet endpoints
   claimTokens,
@@ -556,6 +709,7 @@ export default {
   getTokenBalance,
   // Server health
   pingServer,
+  pingSingleRoute,
   // Utility
   uploadToCloudinary,
   readFileAsDataURL,

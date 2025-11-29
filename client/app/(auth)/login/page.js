@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { FaWallet } from 'react-icons/fa';
 import { useAuth } from '@/contexts/AuthContext';
-import { connectWallet, signMessage } from '@/utils/wallet';
 
 export default function Login() {
   const router = useRouter();
@@ -13,12 +12,17 @@ export default function Login() {
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [error, setError] = useState(null);
 
-  const handleConnectWallet = () => {
+  const handleConnectWallet = async () => {
     setIsConnecting(true);
     setError(null);
-    connectWallet();
-    signMessage('signin to klaim');
-    setIsConnecting(false);
+    try {
+      await connectWallet();
+    } catch (err) {
+      console.error('Failed to connect wallet:', err);
+      setError(err?.message || 'Failed to connect wallet.');
+    } finally {
+      setIsConnecting(false);
+    }
   };
 
   const handleLogin = async () => {
@@ -37,8 +41,13 @@ export default function Login() {
       console.error('Login error:', error);
       
       // Provide helpful error messages
-      if (error.message.includes('not found') || error.message.includes('sign up')) {
-        setError('Account not found. Please sign up first.');
+      if (error.message && (error.message.includes('not found') || error.message.includes('sign up'))) {
+        setError('Account not found. Redirecting to sign up...');
+        setTimeout(() => {
+          router.push('/signup');
+        }, 2000);
+      } else if (error.message && error.message.includes('rejected')) {
+        setError('Signature request was rejected. Please try again.');
       } else {
         setError(error.message || 'Failed to login');
       }

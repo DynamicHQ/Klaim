@@ -76,14 +76,14 @@ export function AuthProvider({ children }) {
     }
   };
 
-  const signup = async (username) => {
+  const signup = async () => {
     if (!wallet) {
       throw new Error('Please connect your wallet first');
     }
 
     try {
-      // Create user account
-      const signupResponse = await apiSignupUser(username, wallet);
+      // Create user account with wallet address as username
+      const signupResponse = await apiSignupUser(wallet, wallet);
 
       if (!signupResponse.success) {
         throw new Error(signupResponse.message || 'Signup failed');

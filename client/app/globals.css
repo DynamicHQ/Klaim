@@ -207,6 +207,7 @@ img {
 /* Prevent horizontal scroll */
 body {
   overflow-x: hidden;
+  font-family: var(--font-jost), system-ui, -apple-system, sans-serif;
 }
 
 /* Responsive Stat */

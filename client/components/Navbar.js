@@ -3,10 +3,11 @@
 import { useState, useEffect } from 'react';
 import Link from "next/link"
 import Image from "next/image"
-import { FaUser, FaStore, FaInfoCircle, FaQuestionCircle, FaSignOutAlt, FaWallet, FaSpinner, FaExclamationTriangle } from "react-icons/fa";
+import { FaUser, FaStore, FaInfoCircle, FaQuestionCircle, FaSignOutAlt, FaWallet, FaSpinner, FaExclamationTriangle, FaServer } from "react-icons/fa";
 import { useAuth } from '@/contexts/AuthContext';
 import { useWallet } from '@/hooks/useWallet';
 import { useKIPBalance } from '@/hooks/useKIPBalance';
+import { pingServer } from '@/utils/api';
 
 /**
  * Navigation Bar Component with Dynamic CTA and Balance Display
@@ -24,6 +25,7 @@ export default function Navbar() {
   const { account: address, isConnected, connectWallet } = useWallet();
   const [theme, setTheme] = useState('light');
   const { formattedBalance, loading: balanceLoading, error: balanceError } = useKIPBalance(address);
+  const [isPinging, setIsPinging] = useState(false);
 
   useEffect(() => {
     // Load theme from localStorage
@@ -37,6 +39,31 @@ export default function Navbar() {
   // User logout handler with authentication cleanup
   const handleDisconnect = () => {
     logout();
+  };
+
+  // Manual server ping handler for testing
+  const handleServerPing = async () => {
+    if (isPinging) return;
+    
+    setIsPinging(true);
+    console.log('🔧 Manual server ping initiated from navbar...');
+    
+    try {
+      const result = await pingServer();
+      
+      if (result.success) {
+        console.log('✅ Manual ping successful:', result);
+        alert(`✅ Server is online!\n\nRoutes tested: ${Object.keys(result.routes).length}\nResponse time: ${result.responseTime}ms\n\nCheck console for details.`);
+      } else {
+        console.warn('⚠️ Manual ping had issues:', result);
+        alert(`⚠️ Server ping completed with issues.\n\nStatus: ${result.status}\nResponse time: ${result.responseTime}ms\nErrors: ${result.errors?.length || 0}\n\nCheck console for details.`);
+      }
+    } catch (error) {
+      console.error('❌ Manual ping failed:', error);
+      alert(`❌ Server ping failed: ${error.message}\n\nCheck console for details.`);
+    } finally {
+      setIsPinging(false);
+    }
   };
 
   /**
@@ -223,6 +250,19 @@ export default function Navbar() {
             <div className="flex items-center gap-2">
               <FaQuestionCircle />
               FAQs
+            </div>
+          </a>
+        </li>
+        <div className="divider"></div>
+        <li>
+          <a onClick={handleServerPing} className={isPinging ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}>
+            <div className="flex items-center gap-2">
+              {isPinging ? (
+                <FaSpinner className="animate-spin" />
+              ) : (
+                <FaServer />
+              )}
+              {isPinging ? 'Testing Server...' : 'Test Server'}
             </div>
           </a>
         </li>

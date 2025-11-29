@@ -19,6 +19,7 @@ import {
   getAuthToken,
   setOnUnauthorizedCallback
 } from '@/utils/api';
+import { setupAuthTest } from '@/utils/authValidation';
 
 const AuthContext = createContext();
 
@@ -61,8 +62,38 @@ export function AuthProvider({ children }) {
       logout();
     });
     
+    // Check if wallet is already connected
+    checkWalletConnection();
+    
+    // Set up auth testing functions for debugging
+    setupAuthTest();
+    
+    // Check if MetaMask is available and set up account change listener
+    if (typeof window !== 'undefined' && window.ethereum) {
+      const handleAccountsChanged = (accounts) => {
+        if (accounts.length === 0) {
+          // User disconnected wallet
+          console.log('Wallet disconnected');
+          logout();
+        } else if (wallet && accounts[0].toLowerCase() !== wallet.toLowerCase()) {
+          // User switched to different account
+          console.log('Wallet account changed');
+          logout();
+        }
+      };
+
+      window.ethereum.on('accountsChanged', handleAccountsChanged);
+      
+      // Cleanup listener on unmount
+      return () => {
+        if (window.ethereum && window.ethereum.removeListener) {
+          window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
+        }
+      };
+    }
+    
     setIsLoading(false);
-  }, []);
+  }, [wallet]);
 
   const connectWallet = async () => {
     try {
@@ -91,14 +122,29 @@ export function AuthProvider({ children }) {
     }
   };
 
-  const signup = async (username) => {
+  // Check if wallet is already connected on page load
+  const checkWalletConnection = async () => {
+    if (typeof window !== 'undefined' && window.ethereum) {
+      try {
+        const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+        if (accounts.length > 0 && !wallet) {
+          setWallet(accounts[0]);
+        }
+      } catch (error) {
+        console.error('Error checking wallet connection:', error);
+      }
+    }
+  };
+
+  const signup = async () => {
     if (!wallet) {
       throw new Error('Please connect your wallet first');
     }
 
     try {
-      // Create user account
-      const signupResponse = await apiSignupUser(username, wallet);
+      // Create user account with wallet address as username
+      // Backend expects { username, walletAddress } format
+      const signupResponse = await apiSignupUser(wallet, wallet);
       
       if (!signupResponse.success) {
         throw new Error(signupResponse.message || 'Signup failed');
@@ -112,6 +158,10 @@ export function AuthProvider({ children }) {
       console.error('Signup error:', error);
       
       // Handle specific error cases
+      if (error.message && error.message.includes('already exists')) {
+        throw new Error('This wallet is already registered. Please login instead.');
+      }
+      
       if (error.status === 500 && error.message.includes('already exists')) {
         throw new Error('This wallet is already registered. Please login instead.');
       }
@@ -126,26 +176,24 @@ export function AuthProvider({ children }) {
     }
 
     try {
-      // Step 1: Get nonce from backend
-      const { nonce } = await getNonce(wallet);
+      // Step 1: Construct message to sign (must match backend exactly)
+      // Backend expects: "Welcome to Klaimit! Sign this message to login."
+      const message = `Welcome to Klaimit! Sign this message to login.`;
       
-      // Step 2: Construct message to sign
-      const message = `Welcome to Klaimit! Sign this nonce to login: ${nonce}`;
-      
-      // Step 3: Sign message with wallet
+      // Step 2: Sign message with wallet
       const signature = await signMessage(message);
       
-      // Step 4: Authenticate with signature
+      // Step 3: Authenticate with signature using the correct endpoint
       const { access_token } = await authenticateWithSignature(wallet, signature);
       
-      // Step 5: Store token and update state
+      // Step 4: Store token and update state
       setAuthToken(access_token);
       setAuthTokenState(access_token);
       
-      // Step 6: Create user object (we'll get full user data from backend in future)
+      // Step 5: Create user object
       const userData = {
         wallet: wallet,
-        profileName: 'Klaimit User' // Default name, can be updated later
+        profileName: 'Klaim User' // Default name, can be updated later
       };
       
       setUser(userData);
@@ -156,12 +204,17 @@ export function AuthProvider({ children }) {
       console.error('Login error:', error);
       
       // Handle specific error cases
-      if (error.message.includes('rejected')) {
+      if (error.message && (error.message.includes('rejected') || error.message.includes('denied') || error.message.includes('User rejected'))) {
         throw new Error('You rejected the signature request. Please try again.');
       } else if (error.status === 401) {
-        throw new Error('Authentication failed. Please try again.');
-      } else if (error.message.includes('not found')) {
+        if (error.message && (error.message.includes('not found') || error.message.includes('register first'))) {
+          throw new Error('Account not found. Please sign up first.');
+        }
+        throw new Error('Authentication failed. Invalid signature or account not found.');
+      } else if (error.message && (error.message.includes('not found') || error.message.includes('register first'))) {
         throw new Error('Account not found. Please sign up first.');
+      } else if (error.message && error.message.includes('Invalid signature')) {
+        throw new Error('Authentication failed. Please try signing the message again.');
       }
       
       throw error;
@@ -186,7 +239,8 @@ export function AuthProvider({ children }) {
     connectWallet,
     signup,
     login,
-    logout
+    logout,
+    checkWalletConnection
   };
 
   return (

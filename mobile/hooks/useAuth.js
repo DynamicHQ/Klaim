@@ -38,21 +38,11 @@ export const useAuth = () => {
 
   /**
    * Sign up new user
-   * @param {string} username - User's profile name
    * @returns {Promise<Object>} Signup result
    */
-  const signup = useCallback(async (username) => {
-    if (!username || username.trim() === '') {
-      Alert.alert(
-        'Invalid Username',
-        'Please enter a valid username.',
-        [{ text: 'OK' }]
-      );
-      throw new Error('Username is required');
-    }
-
+  const signup = useCallback(async () => {
     try {
-      const result = await authContext.signup(username);
+      const result = await authContext.signup();
       return result;
     } catch (error) {
       console.error('Signup error:', error);

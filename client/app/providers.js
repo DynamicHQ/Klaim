@@ -7,7 +7,6 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { BalanceProvider } from "@/contexts/BalanceContext";
 import { config } from "@/config/wagmi";
 import { useState } from "react";
-import ServerPing from "@/components/ServerPing";
 
 /**
  * Application Providers Wrapper Component
@@ -33,7 +32,6 @@ export function Providers({ children }) {
         >
           <AuthProvider>
             <BalanceProvider>
-              <ServerPing />
               {children}
             </BalanceProvider>
           </AuthProvider>
