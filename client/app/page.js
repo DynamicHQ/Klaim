@@ -1,9 +1,8 @@
 'use client';
-import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Inter, Oswald } from "next/font/google";
-import { FaCheck, FaWallet, FaDesktop, FaShieldAlt, FaUsers } from 'react-icons/fa';
+import { FaCheck, FaWallet, FaDesktop, FaShieldAlt, FaUsers, FaRocket, FaBookOpen, FaPlus, FaStore } from 'react-icons/fa';
 import { useAuth } from '@/contexts/AuthContext';
 import { useWallet } from '@/hooks/useWallet';
 
@@ -36,32 +35,36 @@ export default function Home() {
   return (
     <main className="bg-background flex flex-col items-center justify-between">
       <div className="hero min-h-screen bg-main/5 relative overflow-hidden">
-        {/* Background Blobs */}
-        <div className="absolute inset-0 pointer-events-none overflow-x-auto">
-          <Image src="/offsetBlobs.svg" alt="Background decoration" fill className="object-cover object-right" />
-        </div>
-        <div className="hero-content text-center bg-background px-4">
-          <div className="max-w-xl md:max-w-lg sm:max-w-md w-full flex flex-col gap-4 md:gap-6">
+        <div className="hero-content bg-background px-4 relative z-10">
+          <div className="w-full max-w-6xl mx-auto flex flex-col md:flex-row items-center md:items-stretch gap-8 py-12">
+            {/* left: copy and CTAs */}
+            <div className="flex-none md:basis-[60%] flex flex-col justify-center items-center md:items-start text-center md:text-left gap-4 md:gap-6 px-4 sm:px-0">
             <div>
-              <h1 className={`text-3xl sm:text-4xl md:text-5xl lg:text-6xl ${oswald.variable} text-primary-text font-bold break-words`}>Discover. Collect. </h1>
-              <h1 className={`text-3xl sm:text-4xl md:text-5xl lg:text-6xl ${oswald.variable} text-primary-text font-bold break-words`}><span className="text-main">Klaim</span> your IP</h1>
+              <h1 className={`text-3xl sm:text-4xl md:text-5xl lg:text-6xl ${oswald.variable} text-primary-text font-bold wrap-break-word`}>Discover. Collect. </h1>
+              <h1 className={`text-3xl sm:text-4xl md:text-5xl lg:text-6xl ${oswald.variable} text-primary-text font-bold wrap-break-word`}><span className="text-main">Klaim</span> your IP</h1>
             </div>
             <p className={`${inter.variable} py-4 md:py-6 text-secondary-text text-sm sm:text-base md:text-lg`}>
               Explore the world of digital ownership with Klaim, the premier platform for creating, managing, and trading IPs. Join our community of creators and collectors today!
             </p>
             
             {!isAuthenticated ? (
-              <div className="flex flex-col sm:flex-row justify-center gap-3 md:gap-4 w-full">
-                <a href='/login' className="btn bg-main text-white rounded-md px-6 sm:px-8 py-4 md:py-6 outline-none transition-transform duration-300 hover:-translate-y-1 flex items-center gap-2 text-sm md:text-base">Get Started</a>
-                <a href="/docs" className="btn outline-main btn-outline text-main rounded-md px-6 sm:px-8 py-4 md:py-6 transition-transform duration-300 hover:-translate-y-1 hover:text-white hover:bg-main text-sm md:text-base">Learn More</a>
+              <div className="flex flex-col sm:flex-row justify-center gap-3 md:justify-start md:gap-4 w-full">
+                <a href='/login' className="btn bg-main text-white rounded-md px-6 sm:px-8 py-4 md:py-6 outline-none transition-transform duration-300 hover:-translate-y-1 flex items-center gap-2 text-sm md:text-base">
+                  <FaRocket className="w-4 h-4" />
+                  Get Started
+                </a>
+                <a href="/docs" className="btn outline-main btn-outline text-main rounded-md px-6 sm:px-8 py-4 md:py-6 transition-transform duration-300 hover:-translate-y-1 hover:text-white hover:bg-main text-sm md:text-base flex items-center gap-2">
+                  <FaBookOpen className="w-4 h-4" />
+                  Learn More
+                </a>
               </div>
             ) : !isConnected ? (
               <div className="flex flex-col gap-3 md:gap-4 w-full">
                 <div className="alert alert-info text-sm md:text-base">
-                  <FaWallet className="flex-shrink-0" />
+                  <FaWallet className="shrink-0" />
                   <span className="text-left">Please connect your wallet to continue</span>
                 </div>
-                <div className="flex flex-col sm:flex-row justify-center gap-3 md:gap-4">
+                <div className="flex flex-col sm:flex-row justify-start gap-3 md:justify-centermd:gap-4">
                   <button onClick={connectWallet} className="btn bg-main text-white rounded-md px-6 sm:px-8 py-4 md:py-6 outline-none transition-transform duration-300 hover:-translate-y-1 flex items-center gap-2 text-sm md:text-base">
                     <FaWallet />
                     Connect Wallet
@@ -72,15 +75,35 @@ export default function Home() {
             ) : (
               <div className="flex flex-col gap-3 md:gap-4 w-full">
                 <div className="alert alert-success text-sm md:text-base">
-                  <FaCheck className="flex-shrink-0" />
+                  <FaCheck className="shrink-0" />
                   <span className="truncate">Connected: {address?.slice(0, 6)}...{address?.slice(-4)}</span>
                 </div>
-                <div className="flex flex-col sm:flex-row justify-center gap-3 md:gap-4">
-                  <button onClick={() => router.push('/create')} className="btn bg-main text-white rounded-md px-6 sm:px-8 py-4 md:py-6 outline-none transition-transform duration-300 hover:-translate-y-1 text-sm md:text-base">Create NFT</button>
-                  <button onClick={() => router.push('/marketplace')} className="btn outline-main btn-outline text-main rounded-md px-6 sm:px-8 py-4 md:py-6 transition-transform duration-300 hover:-translate-y-1 hover:text-white hover:bg-main text-sm md:text-base">Marketplace</button>
+                <div className="flex flex-col sm:flex-row justify-center gap-3 md:justify-start md:gap-4">
+                  <button onClick={() => router.push('/create')} className="btn bg-main text-white rounded-md px-6 sm:px-8 py-4 md:py-6 outline-none transition-transform duration-300 hover:-translate-y-1 text-sm md:text-base flex items-center gap-2">
+                    <FaPlus />
+                    Create NFT
+                  </button>
+                  <button onClick={() => router.push('/marketplace')} className="btn outline-main btn-outline text-main rounded-md px-6 sm:px-8 py-4 md:py-6 transition-transform duration-300 hover:-translate-y-1 hover:text-white hover:bg-main text-sm md:text-base flex items-center gap-2">
+                    <FaStore />
+                    Marketplace
+                  </button>
                 </div>
               </div>
             )}
+            </div>
+            {/* right: illustration (takes roughly half of the hero on md+) */}
+            <div className="flex-none md:basis-[40%] hidden md:flex items-center justify-center px-4 md:px-0">
+              <div className="w-full max-w-md md:max-w-lg lg:max-w-xl mx-auto">
+                <Image
+                  src="/cheerful-young-man-wearing-cap-using-laptop-computer.png"
+                  alt="Illustration of a person using a laptop"
+                  width={700}
+                  height={900}
+                  className="object-contain"
+                  priority={false}
+                />
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -94,7 +117,7 @@ export default function Home() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl px-4">
           <div className="card bg-base-300 shadow-md p-4 md:p-6 rounded-lg">
             <div className="flex items-center gap-3 mb-3 md:mb-4">
-              <div className="w-12 h-12 rounded-full bg-main/20 flex items-center justify-center flex-shrink-0">
+              <div className="w-12 h-12 rounded-full bg-main/20 flex items-center justify-center shrink-0">
                 <FaDesktop className="w-6 h-6 text-main" />
               </div>
               <h3 className={`text-xl md:text-2xl ${oswald.variable} font-semibold`}>User-Friendly Interface</h3>
@@ -103,7 +126,7 @@ export default function Home() {
           </div>
           <div className="card bg-base-300 shadow-md p-4 md:p-6 rounded-lg">
             <div className="flex items-center gap-3 mb-3 md:mb-4">
-              <div className="w-12 h-12 rounded-full bg-main/20 flex items-center justify-center flex-shrink-0">
+              <div className="w-12 h-12 rounded-full bg-main/20 flex items-center justify-center shrink-0">
                 <FaShieldAlt className="w-6 h-6 text-main" />
               </div>
               <h3 className={`text-xl md:text-2xl ${oswald.variable} font-semibold`}>Secure Transactions</h3>
@@ -114,7 +137,7 @@ export default function Home() {
           </div>
           <div className="card bg-base-300 shadow-md p-4 md:p-6 rounded-lg">
             <div className="flex items-center gap-3 mb-3 md:mb-4">
-              <div className="w-12 h-12 rounded-full bg-main/20 flex items-center justify-center flex-shrink-0">
+              <div className="w-12 h-12 rounded-full bg-main/20 flex items-center justify-center shrink-0">
                 <FaUsers className="w-6 h-6 text-main" />
               </div>
               <h3 className={`text-xl md:text-2xl ${oswald.variable} font-semibold`}>Vibrant Community</h3>

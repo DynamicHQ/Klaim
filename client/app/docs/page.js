@@ -27,6 +27,7 @@ export default function Docs() {
         </div>
 
         {/* Quick Stats */}
+        <div id="quick-stats" className="mt-2"></div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-8 md:mb-12">
           <div className="stat bg-base-100 shadow-lg rounded-box">
             <div className="stat-figure text-primary">
@@ -63,6 +64,7 @@ export default function Docs() {
         </div>
 
         {/* Architecture Overview */}
+        <div id="architecture" className="mt-2"></div>
         <div className="card bg-base-100 shadow-xl mb-8">
           <div className="card-body">
             <h2 className="card-title text-2xl mb-4">
@@ -121,6 +123,7 @@ export default function Docs() {
         </div>
 
         {/* Authentication Flow */}
+        <div id="authentication" className="mt-2"></div>
         <div className="card bg-base-100 shadow-xl mb-8">
           <div className="card-body p-4 md:p-6">
             <h2 className="card-title text-xl md:text-2xl mb-4">
@@ -157,6 +160,7 @@ export default function Docs() {
         </div>
 
         {/* Smart Contracts */}
+        <div id="smart-contracts" className="mt-2"></div>
         <div className="card bg-base-100 shadow-xl mb-8">
           <div className="card-body">
             <h2 className="card-title text-2xl mb-4">
@@ -206,6 +210,7 @@ export default function Docs() {
         </div>
 
         {/* API Endpoints */}
+        <div id="api" className="mt-2"></div>
         <div className="card bg-base-100 shadow-xl mb-8">
           <div className="card-body p-4 md:p-6">
             <h2 className="card-title text-xl md:text-2xl mb-4">
@@ -290,6 +295,7 @@ export default function Docs() {
         </div>
 
         {/* Network Configuration */}
+        <div id="network" className="mt-2"></div>
         <div className="card bg-base-100 shadow-xl mb-8">
           <div className="card-body p-4 md:p-6">
             <h2 className="card-title text-xl md:text-2xl mb-4">
@@ -349,6 +355,7 @@ export default function Docs() {
         </div>
 
         {/* Data Models */}
+        <div id="data-models" className="mt-2"></div>
         <div className="card bg-base-100 shadow-xl mb-8">
           <div className="card-body">
             <h2 className="card-title text-2xl mb-4">
@@ -387,6 +394,7 @@ export default function Docs() {
         </div>
 
         {/* Development Setup */}
+        <div id="dev-setup" className="mt-2"></div>
         <div className="card bg-base-100 shadow-xl mb-8">
           <div className="card-body">
             <h2 className="card-title text-2xl mb-4">
@@ -420,6 +428,7 @@ export default function Docs() {
         </div>
 
         {/* Resources */}
+        <div id="resources" className="mt-2"></div>
         <div className="card bg-primary text-primary-content shadow-xl">
           <div className="card-body p-4 md:p-6">
             <h2 className="card-title text-xl md:text-2xl mb-4">Additional Resources</h2>
