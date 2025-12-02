@@ -54,6 +54,10 @@ export class Asset extends Document {
 
   @Prop({ default: 'Standard' })
   license: string;
+
+   @Prop()
+  metadataURI?: string;
 }
+export type AssetDocument = Asset & Document;
 
 export const AssetSchema = SchemaFactory.createForClass(Asset);

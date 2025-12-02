@@ -4,12 +4,13 @@ import { AssetsController } from './assets.controller';
 import { AssetsService } from './assets.service';
 import { Asset, AssetSchema } from './schema/asset.schema';
 import { AuthModule } from '../auth/auth.module';
+import { Web3Module } from 'src/web3/web3.module';
 
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: Asset.name, schema: AssetSchema }]),
-    
-    AuthModule 
+    AuthModule,
+    Web3Module,
   ],
   controllers: [AssetsController],
   providers: [AssetsService],

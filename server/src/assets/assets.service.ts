@@ -36,7 +36,7 @@ export class AssetsService {
       const saved = await asset.save();
       return {
         success: true,
-        assetId: saved._id.toString(),
+        assetId: (saved._id as Types.ObjectId).toString(),
         transactionHash: null, // Will be updated when blockchain tx completes
         message: 'NFT metadata created successfully',
       };
@@ -206,8 +206,8 @@ export class AssetsService {
     // Transfer ownership
     asset.currentOwner = purchaseIpDto.buyer;
     asset.isListed = false;
-    asset.listingId = null;
-    asset.price = null;
+    asset.listingId = '';
+    asset.price = 0;
 
     await asset.save();
 
@@ -245,17 +245,54 @@ export class AssetsService {
   }
 
   // Find asset by metadataURI
-  async findByMetadataURI(metadataURI: string): Promise<AssetDocument> {
+  async findByMetadataURI(metadataURI: string) {
     return this.assetModel.findOne({ metadataURI }).exec();
   }
 
   // Find asset by listingId
-  async findByListingId(listingId: string): Promise<AssetDocument> {
+  async findByListingId(listingId: string) {
     return this.assetModel.findOne({ listingId }).exec();
   }
 
   // Find asset by tokenId
-  async findByTokenId(tokenId: number): Promise<AssetDocument> {
+  async findByTokenId(tokenId: number) {
     return this.assetModel.findOne({ tokenId }).exec();
+  }
+
+  // Transfer asset ownership
+  async transferAsset(assetId: string, fromAddress: string, toAddress: string): Promise<any> {
+    const asset = await this.assetModel.findById(assetId).exec();
+
+    if (!asset) {
+      throw new NotFoundException('Asset not found');
+    }
+
+    // Verify the current owner matches the fromAddress
+    if (asset.currentOwner.toLowerCase() !== fromAddress.toLowerCase()) {
+      throw new ConflictException('You do not own this asset');
+    }
+
+    // Validate the toAddress format
+    if (!toAddress || !toAddress.match(/^0x[a-fA-F0-9]{40}$/)) {
+      throw new BadRequestException('Invalid recipient wallet address format');
+    }
+
+    // Update the owner
+    asset.currentOwner = toAddress.toLowerCase();
+    
+    // If the asset is listed, remove it from marketplace
+    if (asset.isListed) {
+      asset.isListed = false;
+      asset.listingId = '';
+      asset.price = 0;
+    }
+
+    await asset.save();
+
+    return {
+      success: true,
+      message: 'Asset transferred successfully',
+      asset,
+    };
   }
 }

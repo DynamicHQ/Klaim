@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString, IsNumber } from 'class-validator';
+import { IsNotEmpty, IsString, IsNumber, IsOptional } from 'class-validator';
 
 export class ListMarketplaceDto {
   @IsString()
@@ -6,12 +6,12 @@ export class ListMarketplaceDto {
   assetId: string;
 
   @IsString()
-  @IsNotEmpty()
-  nftContract: string;
+  @IsOptional()
+  nftContract?: string;
 
   @IsNumber()
-  @IsNotEmpty()
-  tokenId: number;
+  @IsOptional()
+  tokenId?: number;
 
   @IsNumber()
   @IsNotEmpty()

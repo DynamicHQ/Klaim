@@ -10,7 +10,16 @@
     "start:client": "cd client && pnpm dev",
     "install:all": "cd server && pnpm install && cd ../client && pnpm install"
   },
-  "keywords": ["blockchain", "faucet", "story-protocol", "nft", "ip"],
+  "keywords": [
+    "blockchain",
+    "faucet",
+    "story-protocol",
+    "nft",
+    "ip"
+  ],
   "author": "",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "@nestjs/throttler": "^6.4.0"
+  }
 }

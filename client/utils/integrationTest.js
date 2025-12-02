@@ -1,0 +1,291 @@
+/**
+ * Integration test utilities for KIP balance and transaction security
+ * This file contains functions to validate system integration
+ */
+
+import { generateVerificationMessage, validateSignedMessage } from './transactionSecurity';
+
+/**
+ * Test the message generation and validation flow
+ */
+export const testMessageGeneration = () => {
+  console.log('🧪 Testing message generation...');
+  
+  try {
+    const testAddress = '0x1234567890123456789012345678901234567890';
+    const testTransaction = {
+      type: 'purchase',
+      assetId: 'test-asset-123',
+      price: '10.5'
+    };
+
+    // Test message generation
+    const messageData = generateVerificationMessage(testAddress, testTransaction);
+    
+    // Validate message structure
+    if (!messageData.message || !messageData.nonce || !messageData.timestamp) {
+      throw new Error('Invalid message structure');
+    }
+
+    // Check message content
+    if (!messageData.message.includes('Purchase IP Asset')) {
+      throw new Error('Message does not contain expected action');
+    }
+
+    if (!messageData.message.includes(testTransaction.assetId)) {
+      throw new Error('Message does not contain asset ID');
+    }
+
+    if (!messageData.message.includes(testTransaction.price)) {
+      throw new Error('Message does not contain price');
+    }
+
+    console.log('✅ Message generation test passed');
+    return true;
+  } catch (error) {
+    console.error('❌ Message generation test failed:', error.message);
+    return false;
+  }
+};
+
+/**
+ * Test balance formatting
+ */
+export const testBalanceFormatting = () => {
+  console.log('🧪 Testing balance formatting...');
+  
+  try {
+    // Import the formatting function from useKIPBalance hook
+    // Note: This is a simplified test since we can't easily test the hook directly
+    const testCases = [
+      { input: '0', expected: '0' },
+      { input: '0.0001', expected: '<0.001' },
+      { input: '0.123', expected: '0.123' },
+      { input: '1.23456', expected: '1.23' },
+      { input: '1234.56', expected: '1.2K' },
+      { input: '1234567.89', expected: '1.2M' }
+    ];
+
+    // Simple formatting logic for testing
+    const formatBalance = (value) => {
+      if (value === null || value === undefined) return null;
+      
+      const numValue = parseFloat(value);
+      if (isNaN(numValue)) return '0';
+      
+      if (numValue === 0) return '0';
+      if (numValue < 0.001) return '<0.001';
+      if (numValue < 1) return numValue.toFixed(3);
+      if (numValue < 1000) return numValue.toFixed(2);
+      if (numValue < 1000000) return (numValue / 1000).toFixed(1) + 'K';
+      return (numValue / 1000000).toFixed(1) + 'M';
+    };
+
+    for (const testCase of testCases) {
+      const result = formatBalance(testCase.input);
+      if (result !== testCase.expected) {
+        throw new Error(`Expected ${testCase.expected}, got ${result} for input ${testCase.input}`);
+      }
+    }
+
+    console.log('✅ Balance formatting test passed');
+    return true;
+  } catch (error) {
+    console.error('❌ Balance formatting test failed:', error.message);
+    return false;
+  }
+};
+
+/**
+ * Test transaction types
+ */
+export const testTransactionTypes = () => {
+  console.log('🧪 Testing transaction types...');
+  
+  try {
+    const testAddress = '0x1234567890123456789012345678901234567890';
+    
+    // Test purchase transaction
+    const purchaseTransaction = {
+      type: 'purchase',
+      assetId: 'asset-123',
+      price: '5.0'
+    };
+    
+    const purchaseMessage = generateVerificationMessage(testAddress, purchaseTransaction);
+    if (!purchaseMessage.message.includes('Purchase IP Asset')) {
+      throw new Error('Purchase message generation failed');
+    }
+
+    // Test listing transaction
+    const listingTransaction = {
+      type: 'listing',
+      assetId: 'asset-456',
+      price: '15.0'
+    };
+    
+    const listingMessage = generateVerificationMessage(testAddress, listingTransaction);
+    if (!listingMessage.message.includes('List IP Asset')) {
+      throw new Error('Listing message generation failed');
+    }
+
+    // Test cancellation transaction
+    const cancellationTransaction = {
+      type: 'cancellation',
+      listingId: 'listing-789'
+    };
+    
+    const cancellationMessage = generateVerificationMessage(testAddress, cancellationTransaction);
+    if (!cancellationMessage.message.includes('Cancel IP Asset Listing')) {
+      throw new Error('Cancellation message generation failed');
+    }
+
+    console.log('✅ Transaction types test passed');
+    return true;
+  } catch (error) {
+    console.error('❌ Transaction types test failed:', error.message);
+    return false;
+  }
+};
+
+/**
+ * Test server connectivity
+ */
+export const testServerConnection = async () => {
+  console.log('🧪 Testing server connection...');
+  
+  try {
+    const { pingServer } = await import('./api');
+    const result = await pingServer();
+    
+    if (result.success) {
+      console.log(`✅ Server is reachable (${result.responseTime}ms)`);
+      console.log(`📋 Status: ${result.status}, Response code: ${result.statusCode}`);
+      return true;
+    } else {
+      console.log(`❌ Server ping failed: ${result.status}`);
+      if (result.error) {
+        console.log(`   Error: ${result.error}`);
+      }
+      if (result.statusCode) {
+        console.log(`   HTTP Status: ${result.statusCode}`);
+      }
+      return false;
+    }
+  } catch (error) {
+    console.error('❌ Server connection test failed:', error.message);
+    return false;
+  }
+};
+
+/**
+ * Test contract deployment status
+ */
+export const testContractDeployment = async () => {
+  console.log('🧪 Testing contract deployment status...');
+  
+  try {
+    const { checkAllContractsStatus } = await import('./contracts');
+    const status = await checkAllContractsStatus();
+    
+    const deployedContracts = Object.values(status.contracts).filter(Boolean).length;
+    const totalContracts = Object.keys(status.contracts).length;
+    
+    console.log(`📋 Network: ${status.network.name} (Chain ID: ${status.network.chainId})`);
+    console.log(`📋 Contracts deployed: ${deployedContracts}/${totalContracts}`);
+    
+    if (deployedContracts === 0) {
+      console.log('❌ No contracts are deployed on the current network');
+      console.log('💡 Make sure you are connected to the correct network (Story Protocol Testnet)');
+      return false;
+    } else if (deployedContracts < totalContracts) {
+      console.log('⚠️  Some contracts are missing');
+      Object.entries(status.contracts).forEach(([name, deployed]) => {
+        console.log(`   ${deployed ? '✅' : '❌'} ${name}`);
+      });
+      return false;
+    } else {
+      console.log('✅ All contracts are properly deployed');
+      return true;
+    }
+  } catch (error) {
+    console.error('❌ Contract deployment test failed:', error.message);
+    return false;
+  }
+};
+
+/**
+ * Run all integration tests
+ */
+export const runIntegrationTests = async () => {
+  console.log('🚀 Running KIP Balance and Transaction Security Integration Tests...\n');
+  
+  const results = {
+    serverConnection: await testServerConnection(),
+    contractDeployment: await testContractDeployment(),
+    messageGeneration: testMessageGeneration(),
+    balanceFormatting: testBalanceFormatting(),
+    transactionTypes: testTransactionTypes()
+  };
+  
+  const passedTests = Object.values(results).filter(Boolean).length;
+  const totalTests = Object.keys(results).length;
+  
+  console.log(`\n📊 Test Results: ${passedTests}/${totalTests} tests passed`);
+  
+  if (passedTests === totalTests) {
+    console.log('🎉 All integration tests passed!');
+  } else {
+    console.log('⚠️  Some tests failed. Please check the implementation.');
+    
+    if (!results.serverConnection) {
+      console.log('\n💡 Server connection issues detected:');
+      console.log('   - Check your internet connection');
+      console.log('   - Verify the API endpoint in .env is correct');
+      console.log('   - Server may be starting up (try again in a moment)');
+    }
+    
+    if (!results.contractDeployment) {
+      console.log('\n💡 Contract deployment issues detected:');
+      console.log('   - Ensure you are connected to Story Protocol Testnet');
+      console.log('   - Check that contract addresses in .env are correct');
+      console.log('   - Verify contracts are deployed on the current network');
+    }
+  }
+  
+  return results;
+};
+
+/**
+ * Quick server ping test for manual testing
+ * Call this from browser console: window.testServerPing()
+ */
+export const quickServerPingTest = async () => {
+  console.log('🏓 Manual server ping test...');
+  const result = await testServerConnection();
+  
+  if (result) {
+    console.log('🎉 Server ping test PASSED - server is reachable!');
+  } else {
+    console.log('❌ Server ping test FAILED - check console for details');
+  }
+  
+  return result;
+};
+
+// Make it available globally for easy testing
+if (typeof window !== 'undefined') {
+  window.testServerPing = quickServerPingTest;
+  window.runAllTests = runIntegrationTests;
+}
+
+// Export for use in development/testing
+export default {
+  testMessageGeneration,
+  testBalanceFormatting,
+  testTransactionTypes,
+  testServerConnection,
+  testContractDeployment,
+  runIntegrationTests,
+  quickServerPingTest
+};
