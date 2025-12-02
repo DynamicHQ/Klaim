@@ -1,9 +1,6 @@
-/**
+/*
  * Wallet utility for MetaMask integration
  * Handles wallet connection, message signing, and event listeners
- */
-
-/**
  * Check if MetaMask is installed
  * @returns {boolean} True if MetaMask is installed
  */
@@ -11,7 +8,7 @@ export function isMetaMaskInstalled() {
   return typeof window !== 'undefined' && typeof window.ethereum !== 'undefined';
 }
 
-/**
+/*
  * Connect to MetaMask and get wallet address
  * @returns {Promise<string>} Connected wallet address
  * @throws {Error} If MetaMask is not installed or user rejects connection
@@ -35,14 +32,14 @@ export async function connectMetaMask() {
     // Handle specific MetaMask error codes
     if (error.code === 4001) {
       throw new Error('You rejected the wallet connection request.');
-    } else if (error.code === -32002) {
+    } else if (error.code === 32002) {
       throw new Error('Please check your wallet for a pending connection request.');
     }
     throw error;
   }
 }
 
-/**
+/*
  * Sign a message with the connected wallet
  * @param {string} message - Message to sign
  * @returns {Promise<string>} Signature
@@ -79,7 +76,7 @@ export async function signMessage(message) {
   }
 }
 
-/**
+/*
  * Get currently connected accounts
  * @returns {Promise<string[]>} Array of connected wallet addresses
  */
@@ -99,7 +96,50 @@ export async function getAccounts() {
   }
 }
 
-/**
+/*
+ * Transfer IP/NFT to another wallet
+ * @param {string} contractAddress - NFT contract address
+ * @param {string} tokenId - Token ID to transfer
+ * @param {string} toAddress - Recipient wallet address
+ * @returns {Promise<string>} Transaction hash
+ */
+export async function transferIP(contractAddress, tokenId, toAddress) {
+  if (!isMetaMaskInstalled()) {
+    throw new Error('MetaMask is not installed.');
+  }
+
+  try {
+    const accounts = await getAccounts();
+    if (!accounts || accounts.length === 0) {
+      throw new Error('No wallet connected. Please connect your wallet first.');
+    }
+
+    const fromAddress = accounts[0];
+
+    // ERC-721 transferFrom function signature
+    const transferData = window.ethereum.request({
+      method: 'eth_sendTransaction',
+      params: [{
+        from: fromAddress,
+        to: contractAddress,
+        data: `0x23b872dd${
+          fromAddress.slice(2).padStart(64, '0')}${
+          toAddress.slice(2).padStart(64, '0')}${
+          tokenId.toString(16).padStart(64, '0')
+        }`
+      }]
+    });
+
+    return transferData;
+  } catch (error) {
+    if (error.code === 4001) {
+      throw new Error('You rejected the transfer request.');
+    }
+    throw error;
+  }
+}
+
+/*
  * Listen for account changes
  * @param {Function} callback - Callback function that receives array of accounts
  * @returns {Function} Cleanup function to remove listener
@@ -292,5 +332,6 @@ export default {
   switchToSepolia,
   isOnCorrectNetwork,
   getNetworkName,
+  transferIP,
   NETWORKS,
 };

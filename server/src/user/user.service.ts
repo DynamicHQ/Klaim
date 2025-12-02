@@ -109,6 +109,17 @@ export class UserService {
       };
     } catch (error) {
       console.error('Error creating user:', error);
+      
+      // Handle specific MongoDB duplicate key error
+      if (error.code === 11000 || error.message.includes('duplicate key')) {
+        throw new InternalServerErrorException('User already exists with this wallet');
+      }
+      
+      // Re-throw InternalServerErrorException as-is
+      if (error instanceof InternalServerErrorException) {
+        throw error;
+      }
+      
       throw new InternalServerErrorException('Failed to create user');
     }
   }

@@ -1,10 +1,9 @@
-import { Controller, Post, Body, UseGuards, Req, Get, Param, Patch, Query } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param, Patch } from '@nestjs/common';
 import { AssetsService } from './assets.service';
 import { CreateNftDto } from './dto/create-nft.dto';
 import { CreateIpDto } from './dto/create-ip.dto';
 import { ListMarketplaceDto } from './dto/list-marketplace.dto';
 import { PurchaseIpDto } from './dto/purchase-ip.dto';
-import { AuthGuard } from '@nestjs/passport';
 
 @Controller('assets')
 export class AssetsController {
@@ -67,6 +66,14 @@ export class AssetsController {
   @Get(':id')
   async findById(@Param('id') id: string) {
     return this.assetsService.findById(id);
+  }
+
+  // Transfer asset ownership
+  @Post('transfer')
+  async transferAsset(
+    @Body() body: { assetId: string; fromAddress: string; toAddress: string },
+  ) {
+    return this.assetsService.transferAsset(body.assetId, body.fromAddress, body.toAddress);
   }
 
 }
